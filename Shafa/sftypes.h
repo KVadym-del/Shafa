@@ -263,8 +263,8 @@ namespace shafa {
 		sfCppVersions cppVersion{ sfCppVersions::cpp20 };
 		sfCppCompilers cppCompiler{ sfCppCompilers::clang };
 		sfProjectOptimization cppOptimization{ sfProjectOptimization::debug };
-		std::filesystem::path defaultClangCompilerPath { "\\..\\LLVM\\bin\\clang++.exe" };
-		std::filesystem::path defaultClangLinkerPath { "\\..\\LLVM\\bin\\lld-link.exe" };
+		std::filesystem::path defaultClangCompilerPath { "\\..\\Shafa\\LLVM\\bin\\clang++.exe" };
+		std::filesystem::path defaultClangLinkerPath { "\\..\\Shafa\\LLVM\\bin\\lld-link.exe" };
 		std::filesystem::path cppCompilerPath{""};
 		std::filesystem::path cppLinkerPath{""};
 	} sfCompilationList;
