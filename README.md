@@ -54,6 +54,7 @@ This project is currently in early alpha, so in what limits are we in?
 - Supported project types: **Static library**, **Dynamic library**, **Application**.
 - Currently, **Shafa** is supported only in Windows, there is no plan for other OSes.
 - Currently, there is no additional **clang++** flags.
+- There is currently no default LLVM compiler (out of the box) yet.
 
 ## Bugs
 It is useful to note that due to the early alpha of the project, bug reports are appreciated!!
