@@ -92,6 +92,9 @@ namespace shafa {
 					compilationCommand += file.filename().replace_extension(".obj").wstring() + L"\"";
 
 				m_compilationCommands.push_back(compilationCommand);
+				compilationCommand.clear();
+				compilationCommand += compiler;
+				compilationCommand += L" -std=" + sfCppVersionsHelper::to_string(m_configSetup.compilationList.cppVersion);
 			}
 			break;
 		}
