@@ -14,6 +14,10 @@
 2.	Open the project in your preferred IDE (e.g., Visual Studio).
 3.	Build the project.
 4.	Run the project with the desired arguments.
+### or
+1. Rownload release
+2. Unzip archive
+3. Run the project with the desired arguments.
 
 ## Command Line Arguments
 **Shafa** supports the following command line arguments:
