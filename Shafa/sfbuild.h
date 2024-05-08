@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <future>
 
 #include "logger.h"
 #include "sftypes.h"
@@ -38,7 +39,7 @@ namespace shafa {
 				std::wcout << buffer;
 			}
 		}
-		void run_compiler(const std::wstring& command);
+		std::future<BOOL> run_compiler(const std::wstring& command);
 
 
 	private:

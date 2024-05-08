@@ -80,6 +80,11 @@ namespace shafa {
                     logger::log(L"Auto source search is disabled.");
                     m_configSetup.configList.autoSourceSearch = false;
                 }
+                else if (key.str() == "multiThreadedBuild" && !(value.as_boolean()->get() == true))
+                {
+                    logger::log(L"Multi-threaded build is disabled.");
+                    m_configSetup.configList.multiThreadedBuild = false;
+                }
                 else if (key.str() == "buildFolder" && !(value.as_string()->get() == "Build"))
                 {
                     logger::log(L"Build folder is set to " + string_to_wstring(value.as_string()->get()) + L".");

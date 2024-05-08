@@ -205,22 +205,20 @@ namespace shafa {
 			throw wruntime_error(L"Invalid project type. Expected: application, staticLibrary, dynamicLibrary.");
 		}
 	};
-
-	typedef enum class sfProjectOptimization
+	
+	typedef enum class sfProjectBuildType
 	{
 		debug = 0x00,
-		optimization = 0x01,
-		optimizationDebug = 0x02,
-	} sfProjectOptimization;
-	struct sfProjectOptimizationHelper
+		release = 0x01,
+	} sfProjectBuildType;
+	struct sfProjectBuildTypeHelper
 	{
-		inline static std::wstring to_string(const sfProjectOptimization& projectOptimization)
+		inline static std::wstring to_string(const sfProjectBuildType& projectOptimization)
 		{
-			static const std::unordered_map<sfProjectOptimization, std::wstring> projectOptimizationMap
+			static const std::unordered_map<sfProjectBuildType, std::wstring> projectOptimizationMap
 			{
-				{sfProjectOptimization::debug, L"debug"},
-				{sfProjectOptimization::optimization, L"optimization"},
-				{sfProjectOptimization::optimizationDebug, L"optimizationDebug"}
+				{sfProjectBuildType::debug, L"debug"},
+				{sfProjectBuildType::release, L"release"}
 			};
 
 			auto it = projectOptimizationMap.find(projectOptimization);
@@ -231,13 +229,13 @@ namespace shafa {
 			return L"debug";
 		}
 
-		inline static sfProjectOptimization to_enum(const std::wstring& projectOptimizationStr)
+		inline static sfProjectBuildType to_enum(const std::wstring& projectOptimizationStr)
 		{
-			static const std::unordered_map<std::wstring, sfProjectOptimization> projectOptimizationMap
+			static const std::unordered_map<std::wstring, sfProjectBuildType> projectOptimizationMap
 			{
-				{L"debug", sfProjectOptimization::debug},
-				{L"optimization", sfProjectOptimization::optimization},
-				{L"optimizationDebug", sfProjectOptimization::optimizationDebug}
+				{L"debug", sfProjectBuildType::debug},
+				{L"release", sfProjectBuildType::release}
+
 			};
 
 			auto it = projectOptimizationMap.find(projectOptimizationStr);
@@ -245,7 +243,7 @@ namespace shafa {
 				return it->second;
 			}
 
-			throw wruntime_error(L"Invalid project optimization. Expected: debug, optimization, optimizationDebug.");
+			throw wruntime_error(L"Invalid project optimization. Expected: debug, release.");
 		}
 	};
 
@@ -258,11 +256,13 @@ namespace shafa {
 		sfProjectType projectType{};
 	} sfProjectSettings;
 
-	typedef struct sfCompilation
+	typedef struct sfCompilationList
 	{
 		sfCppVersions cppVersion{ sfCppVersions::cpp20 };
 		sfCppCompilers cppCompiler{ sfCppCompilers::clang };
-		sfProjectOptimization cppOptimization{ sfProjectOptimization::debug };
+		sfProjectBuildType projectBuildType{ sfProjectBuildType::debug };
+		std::wstring debugFlags{ L" -g -O0 -fno-omit-frame-pointer -Wall -Wextra -Wpedantic" };
+		std::wstring releaseFlags{ L" -O3 -flto -DNDEBUG" };
 		std::filesystem::path defaultClangCompilerPath { "\\..\\Shafa\\LLVM\\bin\\clang++.exe" };
 		std::filesystem::path defaultClangLinkerPath { "\\..\\Shafa\\LLVM\\bin\\lld-link.exe" };
 		std::filesystem::path cppCompilerPath{""};
@@ -272,6 +272,7 @@ namespace shafa {
 	typedef struct sfConfigList
 	{
 		bool autoSourceSearch{ true };
+		bool multiThreadedBuild{ true };
 		std::filesystem::path buildFolder{ L"\\Build" };
 		std::filesystem::path outputReleaseFolder{ L"\\Build\\Output\\Release" };
 		std::filesystem::path outputDebugFolder{ L"\\Build\\Output\\Debug" };

@@ -77,6 +77,25 @@ namespace shafa {
 		std::wstring compilationCommand{ compiler };
 		compilationCommand += L" -std=" + sfCppVersionsHelper::to_string(m_configSetup.compilationList.cppVersion);
 
+		std::wstring buildTypeCommand{};
+		std::wstring folderOutputCommand{};
+
+		switch (m_configSetup.compilationList.projectBuildType)
+		{
+		case sfProjectBuildType::debug:
+			buildTypeCommand += m_configSetup.compilationList.debugFlags;
+			folderOutputCommand += m_configSetup.configList.outputDebugFolder.wstring() + L"\\";
+			logger::log(L"Using debug flags: " + buildTypeCommand);
+			break;
+		case sfProjectBuildType::release:
+			buildTypeCommand += m_configSetup.compilationList.releaseFlags;
+			folderOutputCommand += m_configSetup.configList.outputReleaseFolder.wstring() + L"\\";
+			logger::log(L"Using release flags: " + buildTypeCommand);
+			break;
+		}
+
+		compilationCommand += buildTypeCommand;
+
 		switch (m_configSetup.projectSettings.projectType)
 		{
 		case sfProjectType::application: case sfProjectType::staticLibrary:
@@ -85,7 +104,7 @@ namespace shafa {
 			{
 				compilationCommand += L" \"" + file.wstring() + L"\"";
 
-				compilationCommand += L" -c -o \"" + m_configSetup.configList.outputDebugFolder.wstring() + L"\\";
+				compilationCommand += L" -c -o \"" + folderOutputCommand;
 				if (file.extension() == ".h" || file.extension() == ".hpp")
 					compilationCommand += file.filename().replace_extension(".pch").wstring() + L"\"";
 				else
@@ -114,8 +133,14 @@ namespace shafa {
 		}
 		}
 		
+		std::vector<std::future<BOOL>> processLaunchers;
 		for (const auto& compilationCommand : m_compilationCommands)
-			run_compiler(compilationCommand);
+			processLaunchers.emplace_back(run_compiler(compilationCommand));
+
+		for (auto& launcher : processLaunchers) {
+			BOOL success = launcher.get();
+			logger::log((success ? L"Process launched successfully" : L"Failed to launch process"));
+		}
 	}
 
 	void sfbuild::clang_link()
@@ -135,7 +160,20 @@ namespace shafa {
 
 			m_linkingCommand += L" /defaultlib:libcmt";
 
-			m_linkingCommand += L" -out:\"" + m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName;
+			std::wstring folderOutputCommand{};
+
+			switch (m_configSetup.compilationList.projectBuildType)
+			{
+			case sfProjectBuildType::debug:
+				folderOutputCommand += m_configSetup.configList.outputDebugFolder.wstring() + L"\\";
+				break;
+			case sfProjectBuildType::release:
+				folderOutputCommand += m_configSetup.configList.outputReleaseFolder.wstring() + L"\\";
+				break;
+			}
+
+			m_linkingCommand += L" -out:\"" + folderOutputCommand + m_configSetup.projectSettings.projectName;
+
 			switch (m_configSetup.projectSettings.projectType)
 			{
 			case sfProjectType::application:
@@ -148,7 +186,7 @@ namespace shafa {
 				break;
 			}
 
-			for (const auto& entry : std::filesystem::recursive_directory_iterator(m_configSetup.configList.outputDebugFolder)) {
+			for (const auto& entry : std::filesystem::recursive_directory_iterator(folderOutputCommand)) {
 				if (std::filesystem::is_regular_file(entry)) {
 
 					std::wstring extension = entry.path().extension().wstring();
@@ -163,41 +201,51 @@ namespace shafa {
 		}
 	}
 
-	void sfbuild::run_compiler(const std::wstring& command)
+	std::future<BOOL> sfbuild::run_compiler(const std::wstring& command)
 	{
-		SECURITY_ATTRIBUTES saAttr;
-		saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-		saAttr.bInheritHandle = TRUE;
-		saAttr.lpSecurityDescriptor = nullptr;
+		std::launch launchType;
+		if (m_configSetup.configList.multiThreadedBuild == true)
+			launchType = std::launch::async;
+		else 
+			launchType = std::launch::deferred;
 
-		HANDLE hOutputRead, hOutputWrite;
-		CreatePipe(&hOutputRead, &hOutputWrite, &saAttr, 0);
-		SetHandleInformation(hOutputRead, HANDLE_FLAG_INHERIT, 0);
+		return std::async(launchType, [command]() {
+			SECURITY_ATTRIBUTES saAttr;
+			saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+			saAttr.bInheritHandle = TRUE;
+			saAttr.lpSecurityDescriptor = nullptr;
 
-		STARTUPINFO si;
-		ZeroMemory(&si, sizeof(si));
-		si.cb = sizeof(si);
-		si.hStdError = hOutputWrite;
-		si.hStdOutput = hOutputWrite;
-		si.dwFlags |= STARTF_USESTDHANDLES;
+			HANDLE hOutputRead, hOutputWrite;
+			CreatePipe(&hOutputRead, &hOutputWrite, &saAttr, 0);
+			SetHandleInformation(hOutputRead, HANDLE_FLAG_INHERIT, 0);
 
-		PROCESS_INFORMATION pi;
-		ZeroMemory(&pi, sizeof(pi));
+			STARTUPINFO si;
+			ZeroMemory(&si, sizeof(si));
+			si.cb = sizeof(si);
+			si.hStdError = hOutputWrite;
+			si.hStdOutput = hOutputWrite;
+			si.dwFlags |= STARTF_USESTDHANDLES;
 
-		BOOL success = CreateProcess(nullptr, (LPWSTR)command.c_str(), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi);
+			PROCESS_INFORMATION pi;
+			ZeroMemory(&pi, sizeof(pi));
 
-		if (success)
-		{
-			CloseHandle(hOutputWrite);
-			ReadFromPipe(hOutputRead);
-			CloseHandle(hOutputRead);
-			WaitForSingleObject(pi.hProcess, INFINITE);
-			CloseHandle(pi.hProcess);
-			CloseHandle(pi.hThread);
-		}
-		else
-		{
-			throw wexception(L"Failed to create process.");
-		}
+			BOOL success = CreateProcess(nullptr, (LPWSTR)command.c_str(), nullptr, nullptr, TRUE, 0, nullptr, nullptr, &si, &pi);
+
+			if (success)
+			{
+				CloseHandle(hOutputWrite);
+				ReadFromPipe(hOutputRead);
+				CloseHandle(hOutputRead);
+				WaitForSingleObject(pi.hProcess, INFINITE);
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+
+				return success;
+			}
+			else
+			{
+				throw wexception(L"Failed to create process.");
+			}
+			});
 	}
 }

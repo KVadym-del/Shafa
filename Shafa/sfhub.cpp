@@ -46,10 +46,10 @@ namespace shafa {
 				for (buildIndex = (index + 1); buildIndex < args.size(); buildIndex++)
 				{
 					auto confArgEnum = sfArgEnumHelper::to_enum(args[buildIndex]);
-					m_configSetup.compilationList.cppOptimization = sfProjectOptimizationHelper::to_enum(args[buildIndex]);
+					m_configSetup.compilationList.projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
 					if (confArgEnum == sfArgEnum::none)
 					{
-						m_configSetup.compilationList.cppOptimization = sfProjectOptimizationHelper::to_enum(args[buildIndex]);
+						m_configSetup.compilationList.projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
 						buildArgs.push_back(args[buildIndex]);
 						break;
 					}
@@ -170,17 +170,36 @@ namespace shafa {
 		if (
 			!compareVectors<std::wstring>(oldCppFileIdentity, hashes) || 
 			![&]() {
-				switch (m_configSetup.projectSettings.projectType)
+				switch (m_configSetup.compilationList.projectBuildType)
 				{
-				case sfProjectType::application:
-					return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".exe");
-				case sfProjectType::staticLibrary:
-					return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".lib");
-				case sfProjectType::dynamicLibrary:
-					return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".dll");
-				default:
+				case sfProjectBuildType::debug:
+					switch (m_configSetup.projectSettings.projectType)
+					{
+					case sfProjectType::application:
+						return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".exe");
+					case sfProjectType::staticLibrary:
+						return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".lib");
+					case sfProjectType::dynamicLibrary:
+						return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".dll");
+					default:
+						break;
+					}
+					break;
+				case sfProjectBuildType::release:
+					switch (m_configSetup.projectSettings.projectType)
+					{
+					case sfProjectType::application:
+						return std::filesystem::exists(m_configSetup.configList.outputReleaseFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".exe");
+					case sfProjectType::staticLibrary:
+						return std::filesystem::exists(m_configSetup.configList.outputReleaseFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".lib");
+					case sfProjectType::dynamicLibrary:
+						return std::filesystem::exists(m_configSetup.configList.outputReleaseFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".dll");
+					default:
+						break;
+					}
 					break;
 				}
+
 			}())
 		{
 			std::vector<std::filesystem::path> paths;
