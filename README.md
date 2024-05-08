@@ -5,7 +5,7 @@
 ## Features
 -	Configuring C++ projects using TOML files.
 -	Building C++ projects with different compilers and versions (***Only clang++ is currently supported***).
--	Building C++ projects.
+-	Building C++ projects in multithreaded way.
 -	OpenSSL library for file hashing.
 -	TOML++ library for parsing TOML files.
 
