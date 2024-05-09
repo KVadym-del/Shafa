@@ -56,6 +56,11 @@ namespace shafa {
                     logger::log(L"C++ compiler path is set to " + string_to_wstring(value.as_string()->get()) + L".");
                     m_configSetup.compilationList.cppCompilerPath = string_to_wstring(value.as_string()->get());
                 }
+                else if (key.str() == "cppLinkerPath")
+                {
+                    logger::log(L"C++ compiler is set to " + string_to_wstring(value.as_string()->get()) + L".");
+                    m_configSetup.compilationList.cppLinkerPath = string_to_wstring(value.as_string()->get());
+                }
                 else if (key.str() == "cppCompiler" && !(value.as_string()->get() == "clang"))
                 {
                     logger::log(L"C++ compiler is set to " + string_to_wstring(value.as_string()->get()) + L".");

@@ -125,7 +125,7 @@ namespace shafa {
 				if (file.extension() != ".h" && file.extension() != ".hpp")
 					compilationCommand += L" \"" + file.wstring() + L"\"";
 			}
-			compilationCommand += L" -o \"" + m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName;
+			compilationCommand += L" -o \"" + folderOutputCommand + m_configSetup.projectSettings.projectName;
 			compilationCommand += L".dll\"";
 
 			m_compilationCommands.push_back(compilationCommand);
