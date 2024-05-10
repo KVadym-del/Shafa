@@ -144,7 +144,7 @@ namespace shafa {
 
 		for (auto& launcher : processLaunchers) {
 			BOOL success = launcher.get();
-			logger::log((success ? L"Process launched successfully" : L"Failed to launch process"));
+			logger::log((success ? L"Build process launched successfully" : L"Build failed to launch process"));
 		}
 	}
 
@@ -202,7 +202,8 @@ namespace shafa {
 				}
 			}
 
-			run_compiler(m_linkingCommand);
+			BOOL success = run_compiler(m_linkingCommand).get();
+			logger::log((success ? L"Build process launched successfully" : L"Build failed to launch process"));
 		}
 	}
 
