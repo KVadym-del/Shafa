@@ -31,14 +31,19 @@
 **Shafa** uses TOML files for configuration. Here is an example of a configuration file:
 ``` Toml
 [settings] # Obligatory key
-projectName = 'New Project'  # Obligatory value 
-projectVersion = '0.0.1'  # Obligatory value 
-projectType = 'application'  # Obligatory value 
+projectName = 'New Project' # Obligatory key
+projectVersion = '0.0.1' # Obligatory key
+projectType = 'application' # Obligatory key
 
 [compilation] # Obligatory key
 cppVersion = 'c++23'
+cppCompilerPath = 'another path\clang++.exe'
+cppLinkerPath = 'another path\lld-link.exe'
+debugFlags = ['-g', '-O0', '-fno-omit-frame-pointer', '-Wall', '-Wextra', '-Wpedantic']
+releaseFlags = ['-O3', '-flto', '-DNDEBUG']
 
 [configure] # Obligatory key
+multiThreadedBuild = false
 ```
 
 ## Configuration Keys
