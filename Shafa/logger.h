@@ -44,5 +44,9 @@ namespace shafa {
 			}
 
 		}
+		static void log_new_line()
+		{
+			std::wcout << '\n';
+		}
 	};
 }

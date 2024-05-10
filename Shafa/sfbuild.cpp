@@ -3,6 +3,10 @@
 namespace shafa {
 	void sfbuild::build_hub()
 	{
+#ifdef _DEBUG
+		logger::log_new_line();
+#endif // _DEBUG
+
 		compiler_check();
 		linker_check();
 		switch (m_configSetup.compilationList.cppCompiler)
@@ -207,7 +211,7 @@ namespace shafa {
 		std::launch launchType;
 		if (m_configSetup.configList.multiThreadedBuild == true)
 			launchType = std::launch::async;
-		else 
+		else
 			launchType = std::launch::deferred;
 
 		return std::async(launchType, [command]() {

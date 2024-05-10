@@ -71,6 +71,32 @@ namespace shafa {
                     logger::log(L"C++ version is set to " + string_to_wstring(value.as_string()->get()) + L".");
                     m_configSetup.compilationList.cppVersion = sfCppVersionsHelper::to_enum(string_to_wstring(value.as_string()->get()));
                 }
+                else if (key.str() == "debugFlags")
+                {
+                    if (!value.as_array()->is_homogeneous(toml::node_type::string))
+                    {
+                        throw wruntime_error(L"Debug flags must be a string array.");
+                    }
+                    for (const auto& flag : *value.as_array())
+					{
+                        m_configSetup.compilationList.debugFlags += L" " + string_to_wstring(flag.as_string()->get());
+					}
+
+                    logger::log(L"Non default debug flags are set to: " + m_configSetup.compilationList.debugFlags);
+                }
+                else if (key.str() == "releaseFlags")
+                {
+                    if (!value.as_array()->is_homogeneous(toml::node_type::string))
+                    {
+                        throw wruntime_error(L"Release flags must be a string array.");
+                    }
+                    for (const auto& flag : *value.as_array())
+                    {
+                        m_configSetup.compilationList.releaseFlags += L" " + string_to_wstring(flag.as_string()->get());
+                    }
+
+                    logger::log(L"Non default release flags are set to: " + m_configSetup.compilationList.releaseFlags);
+                }
             }
         }
         else
