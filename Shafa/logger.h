@@ -4,6 +4,7 @@
 #include <string>
 #include <print>
 #include <cstdio>
+#include <format>
 
 namespace shafa {
 	typedef enum class LogLevel
@@ -20,23 +21,23 @@ namespace shafa {
 		logger() = default;
 		~logger() = default;
 
-		static void log(const std::wstring& msg, LogLevel logLevel = LogLevel::Debug)
+		static void log(const std::wstring_view& msg, LogLevel logLevel = LogLevel::Debug)
 		{ 
 			switch (logLevel)
 			{
 			case LogLevel::Info:
-				std::wcout << L"INFO: \t" << msg << std::endl;
+				std::wcout << std::format(L"INFO: \t{}", msg) << std::endl;
 				break;
 			case LogLevel::Debug:
 #ifdef _DEBUG
-				std::wcout << L"DEBUG: \t" << msg << std::endl;
+				std::wcout << std::format(L"DEBUG: \t{}", msg) << std::endl;
 #endif // DEBUG
 				break;
 			case LogLevel::Warning:
-				std::wclog << L"WARNING: \t" << msg << std::endl;
+				std::wclog << std::format(L"WARNING: \t{}", msg)  << std::endl;
 				break;
 			case LogLevel::Error:
-				std::wcerr << L"ERROR: \t" << msg << std::endl;
+				std::wcerr << std::format(L"ERROR: \t{}", msg) << std::endl;
 				break;
 			default:
 				break;

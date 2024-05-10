@@ -20,7 +20,7 @@ namespace shafa {
 		catch (const toml::parse_error& err)
 		{
 			std::wstring werr(err.what(), err.what() + std::strlen((err.what())));
-			logger::log(werr, LogLevel::Error);
+			throw wruntime_error(werr);
 		}
 	}
 }

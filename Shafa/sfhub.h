@@ -43,7 +43,7 @@ namespace shafa {
 		~sfhub() = default;
 
 	public:
-		void analyze_hub(const std::vector <std::wstring>& args);
+		void analyze_hub(const std::vector<std::wstring_view>& args);
 
 		void start_shafa();
 		void non_configured_build();

@@ -6,7 +6,7 @@
 #include "sffile.h"
 
 int wmain(std::int32_t argc, wchar_t** argv) {
-	std::vector <std::wstring> args(argv, argv + argc);
+	std::vector<std::wstring_view> args(argv, argv + argc);
 	shafa::sfConfigSetup configSetup{};
 	configSetup.shafaRootPath = std::filesystem::path(args[0]).parent_path().parent_path();
 	configSetup.configFilePath = std::filesystem::current_path().wstring() + configSetup.configFilePath.wstring();

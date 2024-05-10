@@ -1,6 +1,6 @@
 #include "sfhub.h"
 namespace shafa {
-	void sfhub::analyze_hub(const std::vector<std::wstring>& args)
+	void sfhub::analyze_hub(const std::vector<std::wstring_view>& args)
 	{
 		for (std::size_t index = 1; index < args.size(); index++)
 		{
@@ -15,7 +15,7 @@ namespace shafa {
 				break;
 			case sfArgEnum::configure:
 			{
-				std::vector<std::wstring> configureArgs;
+				std::vector<std::wstring_view> configureArgs;
 				std::size_t confIndex;
 				for (confIndex = (index + 1); confIndex < args.size(); confIndex++)
 				{
@@ -41,7 +41,7 @@ namespace shafa {
 			}
 			case sfArgEnum::build:
 			{ 
-				std::vector<std::wstring> buildArgs;
+				std::vector<std::wstring_view> buildArgs;
 				std::size_t buildIndex;
 				for (buildIndex = (index + 1); buildIndex < args.size(); buildIndex++)
 				{

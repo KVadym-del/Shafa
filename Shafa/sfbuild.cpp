@@ -134,6 +134,7 @@ namespace shafa {
 		}
 		
 		std::vector<std::future<BOOL>> processLaunchers;
+		logger::log(L"Current thread id" + std::to_wstring(GetCurrentThreadId()));
 		for (const auto& compilationCommand : m_compilationCommands)
 			processLaunchers.emplace_back(run_compiler(compilationCommand));
 
@@ -239,6 +240,7 @@ namespace shafa {
 				WaitForSingleObject(pi.hProcess, INFINITE);
 				CloseHandle(pi.hProcess);
 				CloseHandle(pi.hThread);
+				logger::log(L"Thred id: " + std::to_wstring(GetCurrentThreadId()));
 
 				return success;
 			}

@@ -18,7 +18,7 @@ namespace shafa {
 	} sfArgEnum;
 	struct sfArgEnumHelper
 	{
-		inline static std::wstring to_string(const sfArgEnum& argEnum)
+		inline static std::wstring_view to_string(const sfArgEnum& argEnum)
 		{
 			static const std::unordered_map<sfArgEnum, std::wstring> argEnumMap
 			{
@@ -38,9 +38,9 @@ namespace shafa {
 		}
 
 
-		inline static sfArgEnum to_enum(const std::wstring& argEnumStr)
+		inline static sfArgEnum to_enum(const std::wstring_view& argEnumStr)
 		{
-			static const std::unordered_map<std::wstring, sfArgEnum> argEnumMap
+			static const std::unordered_map<std::wstring_view, sfArgEnum> argEnumMap
 			{
 				{L"none", sfArgEnum::none},
 				{L"help", sfArgEnum::help},
@@ -61,7 +61,7 @@ namespace shafa {
 	typedef struct sfArg
 	{
 		sfArgEnum argEnum;
-		std::vector<std::wstring> argEdit;
+		std::vector<std::wstring_view> argEdit;
 	} sfArg;
 
 	/*------------------------------------------------------------------*/
@@ -213,7 +213,7 @@ namespace shafa {
 	} sfProjectBuildType;
 	struct sfProjectBuildTypeHelper
 	{
-		inline static std::wstring to_string(const sfProjectBuildType& projectOptimization)
+		inline static std::wstring_view to_string(const sfProjectBuildType& projectOptimization)
 		{
 			static const std::unordered_map<sfProjectBuildType, std::wstring> projectOptimizationMap
 			{
@@ -229,9 +229,9 @@ namespace shafa {
 			return L"debug";
 		}
 
-		inline static sfProjectBuildType to_enum(const std::wstring& projectOptimizationStr)
+		inline static sfProjectBuildType to_enum(const std::wstring_view& projectOptimizationStr)
 		{
-			static const std::unordered_map<std::wstring, sfProjectBuildType> projectOptimizationMap
+			static const std::unordered_map<std::wstring_view, sfProjectBuildType> projectOptimizationMap
 			{
 				{L"debug", sfProjectBuildType::debug},
 				{L"release", sfProjectBuildType::release}
