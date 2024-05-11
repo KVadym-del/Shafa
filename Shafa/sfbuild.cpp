@@ -40,6 +40,7 @@ namespace shafa {
 			cppNonDefaultCompilerPathExist = false;
 			if (!std::filesystem::exists(this->m_configSetup.compilationList.defaultClangCompilerPath))
 			{
+				logger::log_new_line();
 				throw wexception(
 					std::wstring(L"Neither the specified C++ compiler path nor the default path exists. Please check the path in the configuration file.\n")
 					+ L"\tDefault Path: " + this->m_configSetup.compilationList.defaultClangCompilerPath.wstring()
@@ -56,6 +57,7 @@ namespace shafa {
 			cppNonDefaultLinkerPathExist = false;
 			if (!std::filesystem::exists(this->m_configSetup.compilationList.defaultClangLinkerPath))
 			{
+				logger::log_new_line();
 				throw wexception(
 					std::wstring(L"Neither the specified C++ linker path nor the default path exists. Please check the path in the configuration file.\n")
 					+ L"\tDefault Path: " + this->m_configSetup.compilationList.defaultClangLinkerPath.wstring()
@@ -142,10 +144,19 @@ namespace shafa {
 		for (const auto& compilationCommand : m_compilationCommands)
 			processLaunchers.emplace_back(run_compiler(compilationCommand));
 
+		bool result = true;
 		for (auto& launcher : processLaunchers) {
 			BOOL success = launcher.get();
+			if (success == false)
+				result = false;
 			logger::log((success ? L"Build process launched successfully" : L"Build failed to launch process"));
 		}
+
+		logger::log_new_line();
+		if (result == false)
+			throw wexception(L"Build failed to launch process.");
+		else
+			logger::log(L"Build process launched successfully", LogLevel::Info);
 	}
 
 	void sfbuild::clang_link()
@@ -202,8 +213,16 @@ namespace shafa {
 				}
 			}
 
+			bool result = true;
 			BOOL success = run_compiler(m_linkingCommand).get();
-			logger::log((success ? L"Build process launched successfully" : L"Build failed to launch process"));
+			if (success == false)
+				result = false;
+			logger::log((success ? L"Link process launched successfully" : L"Link failed to launch process"));
+
+			if (result == false)
+				throw wexception(L"Link failed to launch process.");
+			else
+				logger::log(L"Link process launched successfully", LogLevel::Info);
 		}
 	}
 

@@ -33,6 +33,7 @@ namespace shafa {
 		{
 			char buffer[4096];
 			DWORD bytesRead;
+			logger::log_new_line();
 			while (ReadFile(hPipe, buffer, sizeof(buffer) - 1, &bytesRead, NULL) && bytesRead > 0)
 			{
 				buffer[bytesRead] = '\0';

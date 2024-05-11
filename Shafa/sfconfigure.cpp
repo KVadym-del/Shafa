@@ -11,7 +11,7 @@ namespace shafa {
             auto it = compilation_table.find("projectName");
             if (it != compilation_table.end())
 			{
-				logger::log(L"Project name is set to " + string_to_wstring(it->second.as_string()->get()) + L".");
+				logger::log(L"Project name is set to " + string_to_wstring(it->second.as_string()->get()) + L".", LogLevel::Info);
 				m_configSetup.projectSettings.projectName = string_to_wstring(it->second.as_string()->get());
 			}
 			else
@@ -20,7 +20,7 @@ namespace shafa {
 			it = compilation_table.find("projectVersion");
             if (it != compilation_table.end())
             {
-				logger::log(L"Project version is set to " + string_to_wstring(it->second.as_string()->get()) + L".");
+				logger::log(L"Project version is set to " + string_to_wstring(it->second.as_string()->get()) + L".", LogLevel::Info);
 				m_configSetup.projectSettings.projectVersion = string_to_wstring(it->second.as_string()->get());
 			}
             else
@@ -37,7 +37,7 @@ namespace shafa {
                 {
                     throw wruntime_error(err.wwhat());
                 }
-                logger::log(L"Project type is set to " + string_to_wstring(it->second.as_string()->get()) + L".");
+                logger::log(L"Project type is set to " + string_to_wstring(it->second.as_string()->get()) + L".", LogLevel::Info);
 			}
 			else
 				throw wruntime_error(L"Project type not found in TOML file.");
@@ -53,22 +53,22 @@ namespace shafa {
             {
                 if (key.str() == "cppCompilerPath")
                 {
-                    logger::log(L"C++ compiler path is set to " + string_to_wstring(value.as_string()->get()) + L".");
+                    logger::log(L"C++ compiler path is set to " + string_to_wstring(value.as_string()->get()) + L".", LogLevel::Info);
                     m_configSetup.compilationList.cppCompilerPath = string_to_wstring(value.as_string()->get());
                 }
                 else if (key.str() == "cppLinkerPath")
                 {
-                    logger::log(L"C++ compiler is set to " + string_to_wstring(value.as_string()->get()) + L".");
+                    logger::log(L"C++ compiler is set to " + string_to_wstring(value.as_string()->get()) + L".", LogLevel::Info);
                     m_configSetup.compilationList.cppLinkerPath = string_to_wstring(value.as_string()->get());
                 }
                 else if (key.str() == "cppCompiler" && !(value.as_string()->get() == "clang"))
                 {
-                    logger::log(L"C++ compiler is set to " + string_to_wstring(value.as_string()->get()) + L".");
+                    logger::log(L"C++ compiler is set to " + string_to_wstring(value.as_string()->get()) + L".", LogLevel::Info);
                     m_configSetup.compilationList.cppCompiler = sfCppCompilersHelper::to_enum(string_to_wstring(value.as_string()->get()));
                 }
                 else if (key.str() == "cppVersion" && !(value.as_string()->get() == "c++20"))
                 {
-                    logger::log(L"C++ version is set to " + string_to_wstring(value.as_string()->get()) + L".");
+                    logger::log(L"C++ version is set to " + string_to_wstring(value.as_string()->get()) + L".", LogLevel::Info);
                     m_configSetup.compilationList.cppVersion = sfCppVersionsHelper::to_enum(string_to_wstring(value.as_string()->get()));
                 }
                 else if (key.str() == "debugFlags")
@@ -82,7 +82,7 @@ namespace shafa {
                         m_configSetup.compilationList.debugFlags += L" " + string_to_wstring(flag.as_string()->get());
 					}
 
-                    logger::log(L"Non default debug flags are set to: " + m_configSetup.compilationList.debugFlags);
+                    logger::log(L"Non default debug flags are set to: " + m_configSetup.compilationList.debugFlags, LogLevel::Info);
                 }
                 else if (key.str() == "releaseFlags")
                 {
@@ -95,7 +95,7 @@ namespace shafa {
                         m_configSetup.compilationList.releaseFlags += L" " + string_to_wstring(flag.as_string()->get());
                     }
 
-                    logger::log(L"Non default release flags are set to: " + m_configSetup.compilationList.releaseFlags);
+                    logger::log(L"Non default release flags are set to: " + m_configSetup.compilationList.releaseFlags, LogLevel::Info);
                 }
             }
         }
@@ -108,26 +108,26 @@ namespace shafa {
             for (const auto& [key, value] : settings_table) {
                 if (key.str() == "autoSourceSearch" && value.as_boolean()->get() == false)
                 {
-                    logger::log(L"Auto source search is disabled.");
+                    logger::log(L"Auto source search is disabled.", LogLevel::Info);
                     m_configSetup.configList.autoSourceSearch = false;
                 }
                 else if (key.str() == "multiThreadedBuild" && !(value.as_boolean()->get() == true))
                 {
-                    logger::log(L"Multi-threaded build is disabled.");
+                    logger::log(L"Multi-threaded build is disabled.", LogLevel::Info);
                     m_configSetup.configList.multiThreadedBuild = false;
                 }
                 else if (key.str() == "buildFolder" && !(value.as_string()->get() == "Build"))
                 {
-                    logger::log(L"Build folder is set to " + string_to_wstring(value.as_string()->get()) + L".");
+                    logger::log(L"Build folder is set to " + string_to_wstring(value.as_string()->get()) + L".", LogLevel::Info);
                     m_configSetup.configList.buildFolder = string_to_wstring(value.as_string()->get());
                 }
                 else if (key.str() == "outputReleaseFolder" && !(value.as_string()->get() == "Output/Release"))
                 {
-                    logger::log(L"Output release folder is set to " + string_to_wstring(value.as_string()->get()) + L".");
+                    logger::log(L"Output release folder is set to " + string_to_wstring(value.as_string()->get()) + L".", LogLevel::Info);
                     m_configSetup.configList.outputReleaseFolder = string_to_wstring(value.as_string()->get());
 				} else if (key.str() == "outputDebugFolder" && !(value.as_string()->get() == "Output/Debug"))
                 {
-                    logger::log(L"Output debug folder is set to " + string_to_wstring(value.as_string()->get()) + L".");
+                    logger::log(L"Output debug folder is set to " + string_to_wstring(value.as_string()->get()) + L".", LogLevel::Info);
                     m_configSetup.configList.outputDebugFolder = string_to_wstring(value.as_string()->get());
 				}
             }
@@ -142,21 +142,24 @@ namespace shafa {
         {
             if (!std::filesystem::exists(m_configSetup.configList.buildFolder))
 		    {
-		    	logger::log(L"Build folder not found. Creating build folder.");
+		    	logger::log(L"Build folder not found. Creating build folder.", LogLevel::Info);
 		    	std::filesystem::create_directories(m_configSetup.configList.buildFolder);
 		    }
             if (!std::filesystem::exists(m_configSetup.configList.outputDebugFolder))
             {
-                logger::log(L"Debug output folder not found. Creating debug output folder.");
+                logger::log(L"Debug output folder not found. Creating debug output folder.", LogLevel::Info);
                 std::filesystem::create_directories(m_configSetup.configList.outputDebugFolder);
             }
             if (!std::filesystem::exists(m_configSetup.configList.outputReleaseFolder))
 		    {
-		    	logger::log(L"Release output folder not found. Creating release output folder.");
+		    	logger::log(L"Release output folder not found. Creating release output folder.", LogLevel::Info);
 		    	std::filesystem::create_directories(m_configSetup.configList.outputReleaseFolder);
 		    }
 
            write_identifiers_to_file();
+
+           logger::log_new_line();
+           logger::log(L"Configuration completed.", LogLevel::Info);
 
         }
         catch (const wexception& err)
@@ -169,7 +172,7 @@ namespace shafa {
     {
         logger::log(L"Log path: " + m_configSetup.configList.cacheFilePath.wstring());
         if (!std::filesystem::exists(m_configSetup.configList.cacheFilePath)) {
-            logger::log(L"Data.info file not found. Creating data.info file.");
+            logger::log(L"Data.info file not found. Creating data.info file.", LogLevel::Info);
         }
         else
             std::wofstream(m_configSetup.configList.cacheFilePath, std::wios::out | std::wios::trunc).close();

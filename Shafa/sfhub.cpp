@@ -99,6 +99,7 @@ namespace shafa {
 								goto exitConfigureLoop;
 							default:
 								configure_hub(m_sfContTable, m_args);
+								logger::log_new_line();
 								configuration_construct();
 								goto exitConfigureLoop;
 							}
@@ -106,6 +107,7 @@ namespace shafa {
 					}
 					else {
 						configure_hub(m_sfContTable, m_args);
+						logger::log_new_line();
 						configuration_construct();
 					}
 
