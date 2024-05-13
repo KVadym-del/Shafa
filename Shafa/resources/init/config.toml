@@ -1,0 +1,9 @@
+[settings]
+projectName = 'NewProject'
+projectVersion = '0.0.1'
+projectType = 'application'
+
+[compilation]
+cppVersion = 'c++23'
+
+[configure]

@@ -2,14 +2,15 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "sffile.h"
 
 int wmain(std::int32_t argc, wchar_t** argv) {
 	std::vector<std::wstring_view> args(argv, argv + argc);
-	shafa::sfConfigSetup configSetup{};
-	configSetup.shafaRootPath = std::filesystem::path(args[0]).parent_path().parent_path();
-	configSetup.configFilePath = std::filesystem::current_path().wstring() + configSetup.configFilePath.wstring();
+	std::shared_ptr<shafa::sfConfigSetup> configSetup = std::make_shared<shafa::sfConfigSetup>();
+	configSetup->shafaRootPath = std::filesystem::path(args[0]).parent_path().parent_path();
+	configSetup->configFilePath = std::filesystem::current_path().wstring() + configSetup->configFilePath.wstring();
 	try
 	{
 		shafa::sffile sfFile{ configSetup };

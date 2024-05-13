@@ -142,6 +142,7 @@
     <ClInclude Include="sfconfigure.h" />
     <ClInclude Include="sffile.h" />
     <ClInclude Include="sfhub.h" />
+    <ClInclude Include="sfinit.h" />
     <ClInclude Include="sftypes.h" />
     <ClInclude Include="wexception.h" />
   </ItemGroup>
@@ -151,6 +152,7 @@
     <ClCompile Include="sfconfigure.cpp" />
     <ClCompile Include="sffile.cpp" />
     <ClCompile Include="sfhub.cpp" />
+    <ClCompile Include="sfinit.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

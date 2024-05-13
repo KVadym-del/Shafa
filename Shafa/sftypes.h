@@ -15,6 +15,7 @@ namespace shafa {
 		configure = 0x02,
 		build = 0x03,
 		run = 0x04,
+		init = 0x05
 	} sfArgEnum;
 	struct sfArgEnumHelper
 	{
@@ -26,7 +27,8 @@ namespace shafa {
 				{sfArgEnum::help, L"help"},
 				{sfArgEnum::configure, L"configure"},
 				{sfArgEnum::build, L"build"},
-				{sfArgEnum::run, L"run"}
+				{sfArgEnum::run, L"run"},
+				{sfArgEnum::init, L"init"}
 			};
 
 			auto it = argEnumMap.find(argEnum);
@@ -46,7 +48,8 @@ namespace shafa {
 				{L"help", sfArgEnum::help},
 				{L"configure", sfArgEnum::configure},
 				{L"build", sfArgEnum::build},
-				{L"run", sfArgEnum::run}
+				{L"run", sfArgEnum::run},
+				{L"init", sfArgEnum::init}
 			};
 
 			auto it = argEnumMap.find(argEnumStr);
@@ -292,10 +295,10 @@ namespace shafa {
 	{
 		std::filesystem::path shafaRootPath{};
 		std::filesystem::path configFilePath{ "\\config.toml" };
-		sfProjectSettings projectSettings{};
-		sfCompilationList compilationList{};
-		sfConfigList configList{};
-		sfCompilerArgs compilerArgs{};
+		std::unique_ptr<sfProjectSettings> projectSettings = std::make_unique<sfProjectSettings>();
+		std::unique_ptr<sfCompilationList> compilationList = std::make_unique<sfCompilationList>();
+		std::unique_ptr<sfConfigList> configList = std::make_unique<sfConfigList>();
+		std::unique_ptr<sfCompilerArgs> compilerArgs = std::make_unique<sfCompilerArgs>();
 	} sfConfigSetup;
 
 	/*------------------------------------------------------------------*/

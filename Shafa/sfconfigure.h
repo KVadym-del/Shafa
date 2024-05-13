@@ -18,23 +18,23 @@ namespace shafa {
 	class sfconfigure
 	{
     public:
-        sfconfigure(sfConfigSetup& configSetup) : m_configSetup(configSetup) 
+        sfconfigure(std::shared_ptr<sfConfigSetup> configSetup) : m_configSetup(configSetup)
         {
-            m_configSetup.configList.buildFolder = std::filesystem::current_path().wstring() + m_configSetup.configList.buildFolder.wstring();
-            m_configSetup.configList.outputDebugFolder = std::filesystem::current_path().wstring() + m_configSetup.configList.outputDebugFolder.wstring();
-            m_configSetup.configList.outputReleaseFolder = std::filesystem::current_path().wstring() + m_configSetup.configList.outputReleaseFolder.wstring();
-            m_configSetup.configList.cacheFilePath = std::filesystem::current_path().wstring() + m_configSetup.configList.cacheFilePath.wstring();
+            m_configSetup->configList->buildFolder = std::filesystem::current_path().wstring() + m_configSetup->configList->buildFolder.wstring();
+            m_configSetup->configList->outputDebugFolder = std::filesystem::current_path().wstring() + m_configSetup->configList->outputDebugFolder.wstring();
+            m_configSetup->configList->outputReleaseFolder = std::filesystem::current_path().wstring() + m_configSetup->configList->outputReleaseFolder.wstring();
+            m_configSetup->configList->cacheFilePath = std::filesystem::current_path().wstring() + m_configSetup->configList->cacheFilePath.wstring();
 
-            m_configSetup.compilationList.defaultClangCompilerPath = 
-                m_configSetup.shafaRootPath.generic_wstring() + m_configSetup.compilationList.defaultClangCompilerPath.generic_wstring();
-            m_configSetup.compilationList.defaultClangLinkerPath = 
-                m_configSetup.shafaRootPath.generic_wstring() + m_configSetup.compilationList.defaultClangLinkerPath.generic_wstring();
+            m_configSetup->compilationList->defaultClangCompilerPath = 
+                m_configSetup->shafaRootPath.generic_wstring() + m_configSetup->compilationList->defaultClangCompilerPath.generic_wstring();
+            m_configSetup->compilationList->defaultClangLinkerPath = 
+                m_configSetup->shafaRootPath.generic_wstring() + m_configSetup->compilationList->defaultClangLinkerPath.generic_wstring();
 
-            logger::log(L"Build folder: " + m_configSetup.configList.buildFolder.wstring());
-            logger::log(L"Output debug folder: " + m_configSetup.configList.outputDebugFolder.wstring());
-            logger::log(L"Output release folder: " + m_configSetup.configList.outputReleaseFolder.wstring());
-            logger::log(L"Default clang compiler path: " + m_configSetup.compilationList.defaultClangCompilerPath.wstring());
-            logger::log(L"Default clang linker path: " + m_configSetup.compilationList.defaultClangLinkerPath.wstring() + L'\n');
+            logger::log(L"Build folder: " + m_configSetup->configList->buildFolder.wstring());
+            logger::log(L"Output debug folder: " + m_configSetup->configList->outputDebugFolder.wstring());
+            logger::log(L"Output release folder: " + m_configSetup->configList->outputReleaseFolder.wstring());
+            logger::log(L"Default clang compiler path: " + m_configSetup->compilationList->defaultClangCompilerPath.wstring());
+            logger::log(L"Default clang linker path: " + m_configSetup->compilationList->defaultClangLinkerPath.wstring() + L'\n');
 
         }
 
@@ -103,7 +103,7 @@ namespace shafa {
 		}
 
     private:
-        sfConfigSetup& m_configSetup;
+        std::shared_ptr<sfConfigSetup> m_configSetup;
         std::vector<sfArg> m_args;
 
 	};

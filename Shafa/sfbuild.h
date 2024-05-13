@@ -15,7 +15,7 @@ namespace shafa {
 	class sfbuild
 	{
 	public:
-		inline sfbuild(sfConfigSetup& configSetup) : m_configSetup(configSetup)
+		inline sfbuild(std::shared_ptr<sfConfigSetup> configSetup) : m_configSetup(configSetup)
 		{}
 
 		~sfbuild() = default;
@@ -44,7 +44,7 @@ namespace shafa {
 
 
 	private:
-		sfConfigSetup& m_configSetup;
+		std::shared_ptr<sfConfigSetup> m_configSetup;
 
 		std::vector<std::wstring> m_compilationCommands;
 		std::wstring m_linkingCommand{};

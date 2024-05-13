@@ -13,6 +13,28 @@ namespace shafa {
 			case sfArgEnum::help:
 				m_args.push_back({ argEnum, {} });
 				break;
+			case sfArgEnum::init:
+			{
+				std::wstring_view initArg{};
+
+				if (args.size() >= (index + 1))
+				{
+					auto confArgEnum = sfArgEnumHelper::to_enum(args[index + 1]);
+					if (confArgEnum == sfArgEnum::none)
+					{
+						initArg = args[index + 1];
+						break;
+					}
+					else if (confArgEnum == sfArgEnum::help)
+					{
+						initArg = args[index + 1];
+						break;
+					}
+				}
+
+				m_args.push_back({ argEnum, { initArg } });
+				break;
+			}
 			case sfArgEnum::configure:
 			{
 				std::vector<std::wstring_view> configureArgs;
@@ -46,10 +68,10 @@ namespace shafa {
 				for (buildIndex = (index + 1); buildIndex < args.size(); buildIndex++)
 				{
 					auto confArgEnum = sfArgEnumHelper::to_enum(args[buildIndex]);
-					m_configSetup.compilationList.projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
+					m_configSetup->compilationList->projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
 					if (confArgEnum == sfArgEnum::none)
 					{
-						m_configSetup.compilationList.projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
+						m_configSetup->compilationList->projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
 						buildArgs.push_back(args[buildIndex]);
 						break;
 					}
@@ -86,6 +108,29 @@ namespace shafa {
 				{
 				case sfArgEnum::help:
 					sfarghelper::help_args();
+					break;
+				case sfArgEnum::init:
+					if (subArgs[0].empty())
+					{
+						logger::log(L"Unsupported yet!", LogLevel::Error);
+						break;
+						configure_hub(m_sfContTable, m_args);
+						logger::log_new_line();
+						configuration_construct();
+						try
+						{
+							init_project();
+						}
+						catch (const std::exception& err)
+						{
+							throw err;
+						}
+					}
+					else
+					{
+						/*not implemented yet*/
+						logger::log(L"Not implemented yet.", LogLevel::Info);
+					}
 					break;
 				case sfArgEnum::configure:
 					if (subArgs.size() > 0)
@@ -168,34 +213,40 @@ namespace shafa {
 		for (const auto& pair : cppFileIdentity) {
 			hashes.push_back(pair.second);
 		}
-		std::vector <std::wstring> oldCppFileIdentity = get_hashes(m_configSetup.configList.buildFolder.wstring() + L"\\data.info");
+		std::vector <std::wstring> oldCppFileIdentity = get_hashes(m_configSetup->configList->buildFolder.wstring() + L"\\data.info");
 		if (
 			!compareVectors<std::wstring>(oldCppFileIdentity, hashes) || 
 			![&]() {
-				switch (m_configSetup.compilationList.projectBuildType)
+				switch (m_configSetup->compilationList->projectBuildType)
 				{
 				case sfProjectBuildType::debug:
-					switch (m_configSetup.projectSettings.projectType)
+					switch (m_configSetup->projectSettings->projectType)
 					{
 					case sfProjectType::application:
-						return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".exe");
+						return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".exe");
 					case sfProjectType::staticLibrary:
-						return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".lib");
+						return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".lib");
 					case sfProjectType::dynamicLibrary:
-						return std::filesystem::exists(m_configSetup.configList.outputDebugFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".dll");
+						return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".dll");
 					default:
 						break;
 					}
 					break;
 				case sfProjectBuildType::release:
-					switch (m_configSetup.projectSettings.projectType)
+					switch (m_configSetup->projectSettings->projectType)
 					{
 					case sfProjectType::application:
-						return std::filesystem::exists(m_configSetup.configList.outputReleaseFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".exe");
+						return std::filesystem::exists(
+							m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".exe"
+						);
 					case sfProjectType::staticLibrary:
-						return std::filesystem::exists(m_configSetup.configList.outputReleaseFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".lib");
+						return std::filesystem::exists(
+							m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".lib"
+						);
 					case sfProjectType::dynamicLibrary:
-						return std::filesystem::exists(m_configSetup.configList.outputReleaseFolder.wstring() + L"\\" + m_configSetup.projectSettings.projectName + L".dll");
+						return std::filesystem::exists(
+							m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".dll"
+						);
 					default:
 						break;
 					}
@@ -211,7 +262,7 @@ namespace shafa {
 					paths.push_back(pair.first);
 				}
 			}
-			m_configSetup.compilerArgs.cppFiles = paths;
+			m_configSetup->compilerArgs->cppFiles = paths;
 			build_hub();
 		}
 		else

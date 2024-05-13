@@ -9,7 +9,7 @@ namespace shafa {
 
 		compiler_check();
 		linker_check();
-		switch (m_configSetup.compilationList.cppCompiler)
+		switch (m_configSetup->compilationList->cppCompiler)
 		{
 		case sfCppCompilers::clang:
 			clang_build();
@@ -22,7 +22,7 @@ namespace shafa {
 					return fullCompilationCommand;
 				}()
 			);
-			if (m_configSetup.projectSettings.projectType != sfProjectType::dynamicLibrary)
+			if (m_configSetup->projectSettings->projectType != sfProjectType::dynamicLibrary)
 				clang_link();
 			logger::log(L"Linking command: \n\t" + m_linkingCommand);
 			break;
@@ -35,16 +35,16 @@ namespace shafa {
 
 	void sfbuild::compiler_check()
 	{
-		if (!std::filesystem::exists(this->m_configSetup.compilationList.cppCompilerPath))
+		if (!std::filesystem::exists(this->m_configSetup->compilationList->cppCompilerPath))
 		{
 			cppNonDefaultCompilerPathExist = false;
-			if (!std::filesystem::exists(this->m_configSetup.compilationList.defaultClangCompilerPath))
+			if (!std::filesystem::exists(this->m_configSetup->compilationList->defaultClangCompilerPath))
 			{
 				logger::log_new_line();
 				throw wexception(
 					std::wstring(L"Neither the specified C++ compiler path nor the default path exists. Please check the path in the configuration file.\n")
-					+ L"\tDefault Path: " + this->m_configSetup.compilationList.defaultClangCompilerPath.wstring()
-					+ L"\n\tSpecified: " + this->m_configSetup.compilationList.cppCompilerPath.wstring()
+					+ L"\tDefault Path: " + this->m_configSetup->compilationList->defaultClangCompilerPath.wstring()
+					+ L"\n\tSpecified: " + this->m_configSetup->compilationList->cppCompilerPath.wstring()
 				);
 			}
 		}
@@ -52,16 +52,16 @@ namespace shafa {
 
 	void sfbuild::linker_check()
 	{
-		if (!std::filesystem::exists(this->m_configSetup.compilationList.cppLinkerPath))
+		if (!std::filesystem::exists(this->m_configSetup->compilationList->cppLinkerPath))
 		{
 			cppNonDefaultLinkerPathExist = false;
-			if (!std::filesystem::exists(this->m_configSetup.compilationList.defaultClangLinkerPath))
+			if (!std::filesystem::exists(this->m_configSetup->compilationList->defaultClangLinkerPath))
 			{
 				logger::log_new_line();
 				throw wexception(
 					std::wstring(L"Neither the specified C++ linker path nor the default path exists. Please check the path in the configuration file.\n")
-					+ L"\tDefault Path: " + this->m_configSetup.compilationList.defaultClangLinkerPath.wstring()
-					+ L"\n\tSpecified: " + this->m_configSetup.compilationList.cppLinkerPath.wstring()
+					+ L"\tDefault Path: " + this->m_configSetup->compilationList->defaultClangLinkerPath.wstring()
+					+ L"\n\tSpecified: " + this->m_configSetup->compilationList->cppLinkerPath.wstring()
 				);
 			}
 		}
@@ -72,41 +72,41 @@ namespace shafa {
 		std::wstring compiler{};
 		if (cppNonDefaultCompilerPathExist == false)
 		{
-			logger::log(L"Using default C++ compiler path: " + m_configSetup.compilationList.defaultClangCompilerPath.wstring());
-			compiler += m_configSetup.compilationList.defaultClangCompilerPath.wstring();
+			logger::log(L"Using default C++ compiler path: " + m_configSetup->compilationList->defaultClangCompilerPath.wstring());
+			compiler += m_configSetup->compilationList->defaultClangCompilerPath.wstring();
 		}
 		else
 		{
-			logger::log(L"Using specified C++ compiler path: " + m_configSetup.compilationList.cppCompilerPath.wstring());
-			compiler += m_configSetup.compilationList.cppCompilerPath.wstring();
+			logger::log(L"Using specified C++ compiler path: " + m_configSetup->compilationList->cppCompilerPath.wstring());
+			compiler += m_configSetup->compilationList->cppCompilerPath.wstring();
 		}
 		std::wstring compilationCommand{ compiler };
-		compilationCommand += L" -std=" + sfCppVersionsHelper::to_string(m_configSetup.compilationList.cppVersion);
+		compilationCommand += L" -std=" + sfCppVersionsHelper::to_string(m_configSetup->compilationList->cppVersion);
 
 		std::wstring buildTypeCommand{};
 		std::wstring folderOutputCommand{};
 
-		switch (m_configSetup.compilationList.projectBuildType)
+		switch (m_configSetup->compilationList->projectBuildType)
 		{
 		case sfProjectBuildType::debug:
-			buildTypeCommand += m_configSetup.compilationList.debugFlags;
-			folderOutputCommand += m_configSetup.configList.outputDebugFolder.wstring() + L"\\";
+			buildTypeCommand += m_configSetup->compilationList->debugFlags;
+			folderOutputCommand += m_configSetup->configList->outputDebugFolder.wstring() + L"\\";
 			logger::log(L"Using debug flags: " + buildTypeCommand);
 			break;
 		case sfProjectBuildType::release:
-			buildTypeCommand += m_configSetup.compilationList.releaseFlags;
-			folderOutputCommand += m_configSetup.configList.outputReleaseFolder.wstring() + L"\\";
+			buildTypeCommand += m_configSetup->compilationList->releaseFlags;
+			folderOutputCommand += m_configSetup->configList->outputReleaseFolder.wstring() + L"\\";
 			logger::log(L"Using release flags: " + buildTypeCommand);
 			break;
 		}
 
 		compilationCommand += buildTypeCommand;
 
-		switch (m_configSetup.projectSettings.projectType)
+		switch (m_configSetup->projectSettings->projectType)
 		{
 		case sfProjectType::application: case sfProjectType::staticLibrary:
 		{
-			for (const auto& file : m_configSetup.compilerArgs.cppFiles)
+			for (const auto& file : m_configSetup->compilerArgs->cppFiles)
 			{
 				compilationCommand += L" \"" + file.wstring() + L"\"";
 
@@ -119,19 +119,19 @@ namespace shafa {
 				m_compilationCommands.push_back(compilationCommand);
 				compilationCommand.clear();
 				compilationCommand += compiler;
-				compilationCommand += L" -std=" + sfCppVersionsHelper::to_string(m_configSetup.compilationList.cppVersion);
+				compilationCommand += L" -std=" + sfCppVersionsHelper::to_string(m_configSetup->compilationList->cppVersion);
 			}
 			break;
 		}
 		case sfProjectType::dynamicLibrary:
 		{
 			compilationCommand += L" -shared -undefined dynamic_lookup";
-			for (const auto& file : m_configSetup.compilerArgs.cppFiles)
+			for (const auto& file : m_configSetup->compilerArgs->cppFiles)
 			{
 				if (file.extension() != ".h" && file.extension() != ".hpp")
 					compilationCommand += L" \"" + file.wstring() + L"\"";
 			}
-			compilationCommand += L" -o \"" + folderOutputCommand + m_configSetup.projectSettings.projectName;
+			compilationCommand += L" -o \"" + folderOutputCommand + m_configSetup->projectSettings->projectName;
 			compilationCommand += L".dll\"";
 
 			m_compilationCommands.push_back(compilationCommand);
@@ -161,36 +161,36 @@ namespace shafa {
 
 	void sfbuild::clang_link()
 	{
-		if (m_configSetup.projectSettings.projectType != sfProjectType::dynamicLibrary)
+		if (m_configSetup->projectSettings->projectType != sfProjectType::dynamicLibrary)
 		{
 			if (cppNonDefaultLinkerPathExist == false)
 			{
-				logger::log(L"Using default C++ linker path: " + m_configSetup.compilationList.defaultClangLinkerPath.wstring());
-				m_linkingCommand += m_configSetup.compilationList.defaultClangLinkerPath.wstring();
+				logger::log(L"Using default C++ linker path: " + m_configSetup->compilationList->defaultClangLinkerPath.wstring());
+				m_linkingCommand += m_configSetup->compilationList->defaultClangLinkerPath.wstring();
 			}
 			else
 			{
-				logger::log(L"Using specified C++ linker path: " + m_configSetup.compilationList.cppLinkerPath.wstring());
-				m_linkingCommand += m_configSetup.compilationList.cppLinkerPath.wstring();
+				logger::log(L"Using specified C++ linker path: " + m_configSetup->compilationList->cppLinkerPath.wstring());
+				m_linkingCommand += m_configSetup->compilationList->cppLinkerPath.wstring();
 			}
 
 			m_linkingCommand += L" /defaultlib:libcmt";
 
 			std::wstring folderOutputCommand{};
 
-			switch (m_configSetup.compilationList.projectBuildType)
+			switch (m_configSetup->compilationList->projectBuildType)
 			{
 			case sfProjectBuildType::debug:
-				folderOutputCommand += m_configSetup.configList.outputDebugFolder.wstring() + L"\\";
+				folderOutputCommand += m_configSetup->configList->outputDebugFolder.wstring() + L"\\";
 				break;
 			case sfProjectBuildType::release:
-				folderOutputCommand += m_configSetup.configList.outputReleaseFolder.wstring() + L"\\";
+				folderOutputCommand += m_configSetup->configList->outputReleaseFolder.wstring() + L"\\";
 				break;
 			}
 
-			m_linkingCommand += L" -out:\"" + folderOutputCommand + m_configSetup.projectSettings.projectName;
+			m_linkingCommand += L" -out:\"" + folderOutputCommand + m_configSetup->projectSettings->projectName;
 
-			switch (m_configSetup.projectSettings.projectType)
+			switch (m_configSetup->projectSettings->projectType)
 			{
 			case sfProjectType::application:
 				m_linkingCommand += L".exe\"";
@@ -229,7 +229,7 @@ namespace shafa {
 	std::future<BOOL> sfbuild::run_compiler(const std::wstring& command)
 	{
 		std::launch launchType;
-		if (m_configSetup.configList.multiThreadedBuild == true)
+		if (m_configSetup->configList->multiThreadedBuild == true)
 			launchType = std::launch::async;
 		else
 			launchType = std::launch::deferred;

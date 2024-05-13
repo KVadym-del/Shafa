@@ -2,6 +2,7 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 
 #include "sftypes.h"
 #include "sfhub.h"
@@ -16,7 +17,7 @@ namespace shafa
 	{
 	public:
 		sffile() = default;
-		sffile(sfConfigSetup& configSetup);
+		sffile(std::shared_ptr<sfConfigSetup> configSetup);
 		~sffile() = default;
 
 		void check_validity(void);
@@ -27,6 +28,6 @@ namespace shafa
 
 	private:
 		path m_sfPath;
-		sfConfigSetup& m_configSetup;
+		std::shared_ptr<sfConfigSetup> m_configSetup;
 	};
 }

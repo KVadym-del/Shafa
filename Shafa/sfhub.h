@@ -10,6 +10,7 @@
 #include <toml++/toml.hpp>
 
 #include "sftypes.h"
+#include "sfinit.h"
 #include "sfconfigure.h"
 #include "sfbuild.h"
 #include "sfarghelper.h"
@@ -35,10 +36,10 @@ namespace shafa {
 		return true;
 	}
 
-	class sfhub : public sfconfigure, public sfbuild
+	class sfhub : public sfinit, public sfconfigure, public sfbuild
 	{
 	public:
-		sfhub(sfConfigSetup& configSetup) : m_configSetup(configSetup), sfconfigure(configSetup), sfbuild(configSetup)
+		sfhub(std::shared_ptr<sfConfigSetup> configSetup) : m_configSetup(configSetup), sfinit(configSetup), sfconfigure(configSetup), sfbuild(configSetup)
 		{}
 		~sfhub() = default;
 
@@ -49,13 +50,13 @@ namespace shafa {
 		void non_configured_build();
 
 		inline std::vector<sfArg> get_args() const { return m_args; }
-		inline sfConfigSetup& get_config_setup() { return m_configSetup; }
+		inline std::shared_ptr<sfConfigSetup> get_config_setup() { return m_configSetup; }
 
 	protected:
 		toml::table m_sfContTable;
 	
 	private:
 		std::vector<sfArg> m_args{};
-		sfConfigSetup& m_configSetup;
+		std::shared_ptr<sfConfigSetup> m_configSetup;
 	};
 }
