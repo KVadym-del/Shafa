@@ -14,28 +14,10 @@
 #include "sfconfigure.h"
 #include "sfbuild.h"
 #include "sfarghelper.h"
+#include "sftools.h"
 
 
 namespace shafa {
-	template<typename T>
-	bool compareVectors(const std::vector<T>& vec1, const std::vector<T>& vec2)
-	{
-		if (vec1.size() != vec2.size())
-		{
-			return false;
-		}
-
-		for (std::size_t i = 0; i < vec1.size(); i++)
-		{
-			if (vec1[i] != vec2[i])
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	class sfhub : public sfinit, public sfconfigure, public sfbuild
 	{
 	public:

@@ -143,6 +143,7 @@
     <ClInclude Include="sffile.h" />
     <ClInclude Include="sfhub.h" />
     <ClInclude Include="sfinit.h" />
+    <ClInclude Include="sftools.h" />
     <ClInclude Include="sftypes.h" />
     <ClInclude Include="wexception.h" />
   </ItemGroup>

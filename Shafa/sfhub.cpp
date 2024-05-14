@@ -215,7 +215,7 @@ namespace shafa {
 		}
 		std::vector <std::wstring> oldCppFileIdentity = get_hashes(m_configSetup->configList->buildFolder.wstring() + L"\\data.info");
 		if (
-			!compareVectors<std::wstring>(oldCppFileIdentity, hashes) || 
+			!sftools::compare_vectors<std::wstring>(oldCppFileIdentity, hashes) || 
 			![&]() {
 				switch (m_configSetup->compilationList->projectBuildType)
 				{

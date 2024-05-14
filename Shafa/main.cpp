@@ -5,8 +5,8 @@
 #include <memory>
 
 #include "sffile.h"
-
-int wmain(std::int32_t argc, wchar_t** argv) {
+// $(ProjectDir)
+std::int32_t wmain(std::int32_t argc, wchar_t** argv) {
 	std::vector<std::wstring_view> args(argv, argv + argc);
 	std::shared_ptr<shafa::sfConfigSetup> configSetup = std::make_shared<shafa::sfConfigSetup>();
 	configSetup->shafaRootPath = std::filesystem::path(args[0]).parent_path().parent_path();

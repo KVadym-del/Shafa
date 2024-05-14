@@ -5,6 +5,7 @@
 #include <fstream>
 #include <filesystem>
 #include <utility>
+#include <Windows.h>
 
 #include <toml++/toml.hpp>
 #include <openssl/evp.h>
@@ -13,6 +14,7 @@
 #include "sftypes.h"
 #include "wexception.h"
 #include "sfarghelper.h"
+#include "sftools.h"
 
 namespace shafa {
 	class sfconfigure
@@ -44,6 +46,8 @@ namespace shafa {
 		void configuration_construct();
 
 		void write_identifiers_to_file();
+
+        std::filesystem::path foreman_finder(bool isLinker = false);
 		
         static inline std::wstring file_hashing(const std::wstring& file_path) {
             unsigned char digest[EVP_MAX_MD_SIZE];
@@ -54,7 +58,7 @@ namespace shafa {
             }
 
             const EVP_MD* md5_digest = EVP_md5();
-            unsigned int md5_len;
+            std::uint32_t md5_len;
 
             EVP_MD_CTX* md5_ctx = EVP_MD_CTX_new();
 
@@ -78,8 +82,8 @@ namespace shafa {
             
             std::wstringstream ss;
 
-            for (unsigned int i = 0; i < md5_len; i++)
-                ss << std::hex << std::setw(2) << std::setfill(L'0') << static_cast<int>(digest[i]);
+            for (std::uint32_t i = 0; i < md5_len; i++)
+                ss << std::hex << std::setw(2) << std::setfill(L'0') << static_cast<std::int32_t>(digest[i]);
              
             return ss.str();
         }

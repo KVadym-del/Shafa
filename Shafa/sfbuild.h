@@ -1,11 +1,10 @@
 #pragma once
 
-#include <Windows.h>
-
 #include <iostream>
 #include <string>
 #include <filesystem>
 #include <future>
+#include <Windows.h>
 
 #include "logger.h"
 #include "sftypes.h"
