@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "sffile.h"
-// $(ProjectDir)
+
 std::int32_t wmain(std::int32_t argc, wchar_t** argv) {
 	std::vector<std::wstring_view> args(argv, argv + argc);
 	std::shared_ptr<shafa::sfConfigSetup> configSetup = std::make_shared<shafa::sfConfigSetup>();
