@@ -45,6 +45,9 @@
     <ClInclude Include="sftools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sfpkg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -63,6 +66,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sfinit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sfpkg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

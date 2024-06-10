@@ -14,7 +14,7 @@ namespace shafa {
 				m_configSetup->configFilePath.parent_path(),
 				std::filesystem::copy_options::overwrite_existing
 			);
-			logger::log(L"Project initialized successfully", LogLevel::Info);
+			LOG_INFO(L"Project initialized successfully");
 		}
 		catch (const wexception& err)
 		{

@@ -20,7 +20,7 @@ std::int32_t wmain(std::int32_t argc, wchar_t** argv) {
 	}
 	catch (const shafa::wexception& err)
 	{
-		shafa::logger::log(err.wwhat(), shafa::LogLevel::Error);
+		shafa::LOG_ERROR(err.wwhat());
 		return 1;
 	}
 	return 0;

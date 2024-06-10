@@ -15,7 +15,8 @@ namespace shafa {
 		configure = 0x02,
 		build = 0x03,
 		run = 0x04,
-		init = 0x05
+		init = 0x05,
+		pkg = 0x06
 	} sfArgEnum;
 	struct sfArgEnumHelper
 	{
@@ -28,7 +29,8 @@ namespace shafa {
 				{sfArgEnum::configure, L"configure"},
 				{sfArgEnum::build, L"build"},
 				{sfArgEnum::run, L"run"},
-				{sfArgEnum::init, L"init"}
+				{sfArgEnum::init, L"init"},
+				{sfArgEnum::pkg, L"pkg"}
 			};
 
 			auto it = argEnumMap.find(argEnum);
@@ -49,7 +51,8 @@ namespace shafa {
 				{L"configure", sfArgEnum::configure},
 				{L"build", sfArgEnum::build},
 				{L"run", sfArgEnum::run},
-				{L"init", sfArgEnum::init}
+				{L"init", sfArgEnum::init},
+				{L"pkg", sfArgEnum::pkg}
 			};
 
 			auto it = argEnumMap.find(argEnumStr);
@@ -250,6 +253,55 @@ namespace shafa {
 		}
 	};
 
+	typedef enum class sfPkgEvent
+	{
+		none = 0x00,
+		make = 0x01,
+		extract = 0x02,
+		read = 0x03,
+		install = 0x04,
+	} sfPkgEvent;
+	struct sfPkgEventHelper
+	{
+		inline static std::wstring_view to_string(const sfPkgEvent& pkgEvent)
+		{
+			static const std::unordered_map<sfPkgEvent, std::wstring> pkgEventMap
+			{
+				{sfPkgEvent::none, L"none"},
+				{sfPkgEvent::make, L"make"},
+				{sfPkgEvent::extract, L"extract"},
+				{sfPkgEvent::read, L"read"},
+				{sfPkgEvent::install, L"install"}
+			};
+
+			auto it = pkgEventMap.find(pkgEvent);
+			if (it != pkgEventMap.end()) {
+				return it->second;
+			}
+
+			return L"none";
+		}
+
+		inline static sfPkgEvent to_enum(const std::wstring_view& pkgEventStr)
+		{
+			static const std::unordered_map<std::wstring_view, sfPkgEvent> pkgEventMap
+			{
+				{L"none", sfPkgEvent::none},
+				{L"make", sfPkgEvent::make},
+				{L"extract", sfPkgEvent::extract},
+				{L"read", sfPkgEvent::read},
+				{L"install", sfPkgEvent::install}
+			};
+
+			auto it = pkgEventMap.find(pkgEventStr);
+			if (it != pkgEventMap.end()) {
+				return it->second;
+			}
+
+			return sfPkgEvent::none;
+		}
+	};
+
 	/*------------------------------------------------------------------*/
 
 	typedef struct sfProjectSettings
@@ -277,8 +329,10 @@ namespace shafa {
 		bool autoSourceSearch{ true };
 		bool multiThreadedBuild{ true };
 		std::filesystem::path buildFolder{ L"\\Build" };
-		std::filesystem::path outputReleaseFolder{ L"\\Build\\Output\\Release" };
-		std::filesystem::path outputDebugFolder{ L"\\Build\\Output\\Debug" };
+		std::filesystem::path pkgFolder{ buildFolder.wstring() + L"\\Packages" };
+		std::filesystem::path outputFolder{ buildFolder.wstring() + L"\\Output"};
+		std::filesystem::path outputReleaseFolder{ outputFolder.wstring() + L"\\Release"};
+		std::filesystem::path outputDebugFolder{ outputFolder.wstring() + L"\\Debug" };
 		std::filesystem::path cacheFilePath{ buildFolder.wstring() + L"\\data.info"};
 	} sfConfigList;
 
@@ -289,6 +343,7 @@ namespace shafa {
 		std::vector<std::wstring> cppIncludeDirs{};
 		std::vector<std::wstring> cppLibDirs{};
 		std::vector<std::wstring> cppLibs{};
+		std::vector<std::wstring> packages{};
 	} sfCompilerArgs;
 
 	typedef struct sfConfigSetup 

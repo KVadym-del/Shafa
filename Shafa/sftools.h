@@ -64,5 +64,18 @@ namespace shafa {
                 }
             }
 		}
+
+		static std::wstring remove_char(const std::wstring& str, wchar_t ch)
+		{
+			std::wstring newStr;
+			for (const auto& c : str)
+			{
+				if (c != ch)
+				{
+					newStr.push_back(c);
+				}
+			}
+			return newStr;
+		}
 	};
 }

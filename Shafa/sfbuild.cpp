@@ -13,18 +13,17 @@ namespace shafa {
 		{
 		case sfCppCompilers::clang:
 			clang_build();
-			logger::log(L"Compilation command: \n" + [&]() 
+			LOG_DEBUG(L"Compilation command: \n" + [&]()
 				{
 					std::wstring fullCompilationCommand{};
 					for (const auto& compilationCommand : m_compilationCommands)
 						fullCompilationCommand += L"\t" + compilationCommand + L"\n";
 
 					return fullCompilationCommand;
-				}()
-			);
+				}());
 			if (m_configSetup->projectSettings->projectType != sfProjectType::dynamicLibrary)
 				clang_link();
-			logger::log(L"Linking command: \n\t" + m_linkingCommand);
+			LOG_DEBUG(L"Linking command: \n\t" + m_linkingCommand);
 			break;
 		case sfCppCompilers::msvc:
 			break;
@@ -69,15 +68,16 @@ namespace shafa {
 
 	void sfbuild::clang_build()
 	{
+		FunctStats functionStats{ __FUNCTIONW__, __FILEW__ };
 		std::wstring compiler{};
 		if (cppNonDefaultCompilerPathExist == false)
 		{
-			logger::log(L"Using default C++ compiler path: " + m_configSetup->compilationList->defaultClangCompilerPath.wstring());
+			LOG_DEBUG(L"Using default C++ compiler path: " + m_configSetup->compilationList->defaultClangCompilerPath.wstring());
 			compiler += m_configSetup->compilationList->defaultClangCompilerPath.wstring();
 		}
 		else
 		{
-			logger::log(L"Using specified C++ compiler path: " + m_configSetup->compilationList->cppCompilerPath.wstring());
+			LOG_DEBUG(L"Using specified C++ compiler path: " + m_configSetup->compilationList->cppCompilerPath.wstring());
 			compiler += m_configSetup->compilationList->cppCompilerPath.wstring();
 		}
 		std::wstring compilationCommand{ compiler };
@@ -91,16 +91,19 @@ namespace shafa {
 		case sfProjectBuildType::debug:
 			buildTypeCommand += m_configSetup->compilationList->debugFlags;
 			folderOutputCommand += m_configSetup->configList->outputDebugFolder.wstring() + L"\\";
-			logger::log(L"Using debug flags: " + buildTypeCommand);
+			LOG_DEBUG(L"Using debug flags: " + buildTypeCommand);
 			break;
 		case sfProjectBuildType::release:
 			buildTypeCommand += m_configSetup->compilationList->releaseFlags;
 			folderOutputCommand += m_configSetup->configList->outputReleaseFolder.wstring() + L"\\";
-			logger::log(L"Using release flags: " + buildTypeCommand);
+			LOG_DEBUG(L"Using release flags: " + buildTypeCommand);
 			break;
 		}
 
 		compilationCommand += buildTypeCommand;
+
+		for (const std::filesystem::path headerDir : m_configSetup->compilerArgs->cppIncludeDirs)
+			compilationCommand += L" -I\"" + headerDir.wstring() + L"\"";
 
 		switch (m_configSetup->projectSettings->projectType)
 		{
@@ -140,7 +143,7 @@ namespace shafa {
 		}
 		
 		std::vector<std::future<BOOL>> processLaunchers;
-		logger::log(L"Current thread id" + std::to_wstring(GetCurrentThreadId()));
+		LOG_DEBUG(L"Current thread id" + std::to_wstring(GetCurrentThreadId()));
 		for (const auto& compilationCommand : m_compilationCommands)
 			processLaunchers.emplace_back(run_compiler(compilationCommand));
 
@@ -149,14 +152,14 @@ namespace shafa {
 			BOOL success = launcher.get();
 			if (success == false)
 				result = false;
-			logger::log((success ? L"Build process launched successfully" : L"Build failed to launch process"));
+			LOG_DEBUG((success ? L"Build process launched successfully" : L"Build failed to launch process"));
 		}
 
 		logger::log_new_line();
 		if (result == false)
 			throw wexception(L"Build failed to launch process.");
 		else
-			logger::log(L"Build process launched successfully", LogLevel::Info);
+			LOG_INFO(L"Build process launched successfully");
 	}
 
 	void sfbuild::clang_link()
@@ -165,16 +168,26 @@ namespace shafa {
 		{
 			if (cppNonDefaultLinkerPathExist == false)
 			{
-				logger::log(L"Using default C++ linker path: " + m_configSetup->compilationList->defaultClangLinkerPath.wstring());
+				LOG_DEBUG(L"Using default C++ linker path: " + m_configSetup->compilationList->defaultClangLinkerPath.wstring());
 				m_linkingCommand += m_configSetup->compilationList->defaultClangLinkerPath.wstring();
 			}
 			else
 			{
-				logger::log(L"Using specified C++ linker path: " + m_configSetup->compilationList->cppLinkerPath.wstring());
+				LOG_DEBUG(L"Using specified C++ linker path: " + m_configSetup->compilationList->cppLinkerPath.wstring());
 				m_linkingCommand += m_configSetup->compilationList->cppLinkerPath.wstring();
 			}
 
-			m_linkingCommand += L" /defaultlib:libcmt";
+
+			if (m_configSetup->compilationList->projectBuildType == sfProjectBuildType::debug)
+				m_linkingCommand += L" /defaultlib:libucrtd";
+			else
+				m_linkingCommand += L" /defaultlib:libucrt";
+
+			for (const std::filesystem::path dir :  m_configSetup->compilerArgs->cppLibDirs)
+				m_linkingCommand += L" /LIBPATH:\"" + dir.wstring() + L"\"";
+
+			for (const std::filesystem::path lib : m_configSetup->compilerArgs->cppLibs)
+				m_linkingCommand += L" /DEFAULTLIB:\"" + lib.wstring() + L"\"";
 
 			std::wstring folderOutputCommand{};
 
@@ -217,12 +230,12 @@ namespace shafa {
 			BOOL success = run_compiler(m_linkingCommand).get();
 			if (success == false)
 				result = false;
-			logger::log((success ? L"Link process launched successfully" : L"Link failed to launch process"));
+			LOG_DEBUG((success ? L"Link process launched successfully" : L"Link failed to launch process"));
 
 			if (result == false)
 				throw wexception(L"Link failed to launch process.");
 			else
-				logger::log(L"Link process launched successfully", LogLevel::Info);
+				LOG_INFO(L"Link process launched successfully");
 		}
 	}
 
@@ -264,7 +277,7 @@ namespace shafa {
 				WaitForSingleObject(pi.hProcess, INFINITE);
 				CloseHandle(pi.hProcess);
 				CloseHandle(pi.hThread);
-				logger::log(L"Thred id: " + std::to_wstring(GetCurrentThreadId()));
+				LOG_DEBUG(L"Process id: " + std::to_wstring(pi.dwProcessId));
 
 				return success;
 			}

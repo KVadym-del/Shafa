@@ -13,15 +13,21 @@
 #include "sfinit.h"
 #include "sfconfigure.h"
 #include "sfbuild.h"
+#include "sfpkg.h"
 #include "sfarghelper.h"
 #include "sftools.h"
 
 
 namespace shafa {
-	class sfhub : public sfinit, public sfconfigure, public sfbuild
+	class sfhub : public sfinit, public sfconfigure, public sfbuild, public sfpkg
 	{
 	public:
-		sfhub(std::shared_ptr<sfConfigSetup> configSetup) : m_configSetup(configSetup), sfinit(configSetup), sfconfigure(configSetup), sfbuild(configSetup)
+		sfhub(std::shared_ptr<sfConfigSetup> configSetup) 
+			: m_configSetup(configSetup),
+			sfinit(configSetup),
+			sfconfigure(configSetup),
+			sfbuild(configSetup),
+			sfpkg(configSetup)
 		{}
 		~sfhub() = default;
 

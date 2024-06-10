@@ -72,6 +72,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgUseStatic>false</VcpkgUseStatic>
+    <VcpkgUseMD>
+    </VcpkgUseMD>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -113,6 +118,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -143,6 +149,7 @@
     <ClInclude Include="sffile.h" />
     <ClInclude Include="sfhub.h" />
     <ClInclude Include="sfinit.h" />
+    <ClInclude Include="sfpkg.h" />
     <ClInclude Include="sftools.h" />
     <ClInclude Include="sftypes.h" />
     <ClInclude Include="wexception.h" />
@@ -154,6 +161,7 @@
     <ClCompile Include="sffile.cpp" />
     <ClCompile Include="sfhub.cpp" />
     <ClCompile Include="sfinit.cpp" />
+    <ClCompile Include="sfpkg.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

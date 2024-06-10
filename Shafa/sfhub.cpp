@@ -62,7 +62,7 @@ namespace shafa {
 				break;
 			}
 			case sfArgEnum::build:
-			{ 
+			{
 				std::vector<std::wstring_view> buildArgs;
 				std::size_t buildIndex;
 				for (buildIndex = (index + 1); buildIndex < args.size(); buildIndex++)
@@ -73,6 +73,57 @@ namespace shafa {
 					{
 						m_configSetup->compilationList->projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
 						buildArgs.push_back(args[buildIndex]);
+						break;
+					}
+					else if (confArgEnum == sfArgEnum::help)
+					{
+						buildArgs.push_back(args[buildIndex]);
+						break;
+					}
+					else
+					{
+						--buildIndex;
+						break;
+					}
+				}
+				m_args.push_back({ argEnum, buildArgs });
+				break;
+			}
+			case sfArgEnum::pkg:
+			{
+				std::vector<std::wstring_view> buildArgs;
+				std::size_t buildIndex;
+				for (buildIndex = (index + 1); buildIndex < args.size(); buildIndex++)
+				{
+					auto confArgEnum = sfArgEnumHelper::to_enum(args[buildIndex]);
+					sfPkgEvent pkgEvent = sfPkgEventHelper::to_enum(args[buildIndex]);
+					if (confArgEnum == sfArgEnum::none)
+					{
+						switch (pkgEvent)
+						{
+						case shafa::sfPkgEvent::make:
+							buildArgs.push_back(args[buildIndex]);
+							break;
+						case shafa::sfPkgEvent::extract:
+							buildArgs.push_back(args[buildIndex]);
+							buildArgs.push_back(args[buildIndex + 1]);
+							buildArgs.push_back(args[buildIndex + 2]);
+							break;
+						case shafa::sfPkgEvent::read:
+							buildArgs.push_back(args[buildIndex]);
+							break;
+						case shafa::sfPkgEvent::install:
+							buildArgs.push_back(args[buildIndex]);
+							if (args.size() >= (buildIndex + 1))
+							{
+								buildArgs.push_back(args[buildIndex + 1]);
+							} else
+							{
+								LOG_ERROR(L"Please provide a path to the package");
+								break;
+							}
+							break;
+						}
 						break;
 					}
 					else if (confArgEnum == sfArgEnum::help)
@@ -98,6 +149,7 @@ namespace shafa {
 			}
 		}
 	}
+
 	void sfhub::start_shafa()
 	{
 		if (m_args.size() > 0)
@@ -112,7 +164,7 @@ namespace shafa {
 				case sfArgEnum::init:
 					if (subArgs[0].empty())
 					{
-						logger::log(L"Unsupported yet!", LogLevel::Error);
+						LOG_ERROR(L"Unsupported yet!");
 						break;
 						configure_hub(m_sfContTable, m_args);
 						logger::log_new_line();
@@ -129,7 +181,7 @@ namespace shafa {
 					else
 					{
 						/*not implemented yet*/
-						logger::log(L"Not implemented yet.", LogLevel::Info);
+						LOG_INFO(L"Not implemented yet.");
 					}
 					break;
 				case sfArgEnum::configure:
@@ -166,26 +218,107 @@ namespace shafa {
 							switch (sfArgEnumHelper::to_enum(subArg))
 							{
 							case sfArgEnum::help:
-								logger::log(L"Not implemented yet.", LogLevel::Info);
+								LOG_INFO(L"Not implemented yet.");
 								goto exitBuildLoop;
 							default:
 								{
 								non_configured_build();
+								configuration_construct();
 								}
 							}
 						}
 					}
 					else {
 						non_configured_build();
+						configuration_construct();
 					}
 				exitBuildLoop:
 					break;
 				case sfArgEnum::run:
-					logger::log(L"Not implemented yet.", LogLevel::Info);
+					LOG_INFO(L"Not implemented yet.");
 					break;
+				case sfArgEnum::pkg:
+					configure_hub(m_sfContTable, m_args);
+					if (subArgs.size() > 0) {
+						for (const auto& subArg : subArgs)
+						{
+							switch (sfPkgEventHelper::to_enum(subArg))
+							{
+							case sfPkgEvent::none:
+								LOG_ERROR(L"Unknown argument");
+								break;
+							case sfPkgEvent::make:
+								try { sfpkg::make_pkg(std::filesystem::current_path()); }
+								catch (const wexception& err) { throw err; }
+								goto exitPkgLoop;
+							case sfPkgEvent::extract:
+								if (subArgs.size() >= 3) {
+									if (subArgs[1].empty())
+									{
+										LOG_ERROR(L"Please provide a path to the package");
+										goto exitPkgLoop;
+									}
+									else if (subArgs[2].empty())
+									{
+										LOG_ERROR(L"Please provide a path to extract the package");
+										goto exitPkgLoop;
+									}
+									else {
+										try
+										{
+											sfpkg::extract_pkg(subArgs[1], subArgs[2]);
+											goto exitPkgLoop;
+										}
+										catch (const wexception& err)
+										{
+											throw err;
+										}
+									}
+								}
+								else {
+									throw wexception(L"Not enough arguments, use help to find more information");
+								}
+								goto exitPkgLoop;
+							case sfPkgEvent::read:
+								LOG_INFO(L"Not implemented yet.");
+								goto exitPkgLoop;
+
+							case sfPkgEvent::install:
+								if (subArgs.size() >= 2) {
+									if (subArgs[1].empty())
+									{
+										LOG_ERROR(L"Please provide a path to the package");
+										goto exitPkgLoop;
+									}
+									else {
+										try
+										{
+											sfpkg::install_pkg(subArgs[1]);
+											goto exitPkgLoop;
+										}
+										catch (const wexception& err)
+										{
+											throw err;
+										}
+									}
+								}
+								else {
+									throw wexception(L"Not enough arguments, use help to find more information");
+								}
+								goto exitPkgLoop;
+							}
+						}
+					}
+					else {
+						LOG_ERROR(L"Not enough arguments, use help to find more information");
+					}
+				exitPkgLoop:
+					break;
+					/*
 				default:
-					logger::log(L"Unknown argument", LogLevel::Error);
+					LOG_ERROR(L"Unknown argument");
 					break;
+					*/
 				}
 			}
 		}
@@ -214,47 +347,33 @@ namespace shafa {
 			hashes.push_back(pair.second);
 		}
 		std::vector <std::wstring> oldCppFileIdentity = get_hashes(m_configSetup->configList->buildFolder.wstring() + L"\\data.info");
-		if (
-			!sftools::compare_vectors<std::wstring>(oldCppFileIdentity, hashes) || 
-			![&]() {
-				switch (m_configSetup->compilationList->projectBuildType)
-				{
-				case sfProjectBuildType::debug:
-					switch (m_configSetup->projectSettings->projectType)
-					{
-					case sfProjectType::application:
-						return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".exe");
-					case sfProjectType::staticLibrary:
-						return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".lib");
-					case sfProjectType::dynamicLibrary:
-						return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".dll");
-					default:
-						break;
-					}
-					break;
-				case sfProjectBuildType::release:
-					switch (m_configSetup->projectSettings->projectType)
-					{
-					case sfProjectType::application:
-						return std::filesystem::exists(
-							m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".exe"
-						);
-					case sfProjectType::staticLibrary:
-						return std::filesystem::exists(
-							m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".lib"
-						);
-					case sfProjectType::dynamicLibrary:
-						return std::filesystem::exists(
-							m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".dll"
-						);
-					default:
-						break;
-					}
-					break;
-				}
-
-			}())
-		{
+        if (!sftools::compare_vectors<std::wstring>(oldCppFileIdentity, hashes) ||
+            ![&]() {
+                switch (m_configSetup->compilationList->projectBuildType) {
+                    case sfProjectBuildType::debug:
+                        switch (m_configSetup->projectSettings->projectType) {
+                            case sfProjectType::application:
+                                return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".exe");
+                            case sfProjectType::staticLibrary:
+                                return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".lib");
+                            case sfProjectType::dynamicLibrary:
+                                return std::filesystem::exists(m_configSetup->configList->outputDebugFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".dll");
+                        }
+                        break;
+                    case sfProjectBuildType::release:
+                        switch (m_configSetup->projectSettings->projectType) {
+                            case sfProjectType::application:
+                                return std::filesystem::exists(m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".exe");
+                            case sfProjectType::staticLibrary:
+                                return std::filesystem::exists(m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".lib");
+                            case sfProjectType::dynamicLibrary:
+                                return std::filesystem::exists(m_configSetup->configList->outputReleaseFolder.wstring() + L"\\" + m_configSetup->projectSettings->projectName + L".dll");
+                        }
+                        break;
+                }
+                return false;
+            }())
+        {
 			std::vector<std::filesystem::path> paths;
 			for (const auto& pair : cppFileIdentity) {
 				if (pair.first.extension() != ".h" || pair.first.extension() != ".hpp")
@@ -267,7 +386,7 @@ namespace shafa {
 		}
 		else
 		{
-			logger::log(L"Files have not changed. Skipping build.", LogLevel::Info);
+			LOG_INFO(L"Files have not changed. Skipping build.");
 		}
 	}
 }
