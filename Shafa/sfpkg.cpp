@@ -8,11 +8,29 @@ namespace shafa {
 	void sfpkg::make_pkg(const std::filesystem::path& folderPath)
 	{
         const std::filesystem::path tarPath{
-            m_configSetup->configList->outputFolder.string() + "\\" +
-            wstring_to_string(m_configSetup->projectSettings->projectName) + ".sfpkg" 
+            m_configSetup->configList->outputFolder.wstring() + L"\\" +
+            m_configSetup->projectSettings->projectName + L"-" + m_configSetup->projectSettings->projectVersion + L".sfpkg"
         };
         make_tar(folderPath, tarPath);
 	}
+
+    void sfpkg::make_pkg_config()
+    {
+		std::wfstream configFile;
+        std::filesystem::path tempPkgConfigPath = std::filesystem::current_path().wstring() + L"\\pkgConfig.toml";
+        configFile.open(tempPkgConfigPath, std::ios::out | std::ios::trunc);
+		if (!configFile.is_open())
+			throw wexception(L"Could not open file");
+
+		configFile << "[settings]\n";
+		configFile << L"projectName = \'" + m_configSetup->projectSettings->projectName + L"\'\n";
+		configFile << L"projectVersion = \'" + m_configSetup->projectSettings->projectVersion + L"\'\n";
+		configFile << L"projectType = \'pkg\'\n";
+
+        configFile << L"[compilation]\n";
+        configFile << L"cppCompilerPath = 'auto'\n";
+        configFile << L"cppLinkerPath = 'auto'\n";
+    }
 
 	void sfpkg::extract_pkg(const std::filesystem::path& pkgPath, const std::filesystem::path& extractPath)
 	{
@@ -64,6 +82,8 @@ namespace shafa {
 
         if (archive_write_open_filename(a, tarPath.string().c_str()) != ARCHIVE_OK)
             throw wexception(L"Error opening archive");
+
+
 
         add_files_to_archive(a, folderPath.string().c_str(), exclusions, tarPath.string());
 
@@ -204,14 +224,4 @@ namespace shafa {
             throw wexception(L"Error finishing entry");
         }
     }
-
-    void sfpkg::decompress_7z(const std::filesystem::path& pkgPath, const std::filesystem::path& extractPath)
-    {
-        
-
-        LOG_INFO(L"Phase three is complete");
-    }
-
-   
-
 }

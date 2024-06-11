@@ -174,6 +174,7 @@ namespace shafa {
 		application = 0x00,
 		staticLibrary = 0x01,
 		dynamicLibrary = 0x02,
+		headerOnly = 0x03
 	} sfProjectType;
 	struct sfProjectTypeHelper
 	{
@@ -183,7 +184,8 @@ namespace shafa {
 			{
 				{sfProjectType::application, L"application"},
 				{sfProjectType::staticLibrary, L"staticLibrary"},
-				{sfProjectType::dynamicLibrary, L"dynamicLibrary"}
+				{sfProjectType::dynamicLibrary, L"dynamicLibrary"},
+				{sfProjectType::headerOnly, L"headerOnly"}
 			};
 
 			auto it = projectTypeMap.find(projectType);
@@ -200,7 +202,8 @@ namespace shafa {
 			{
 				{L"application", sfProjectType::application},
 				{L"staticLibrary", sfProjectType::staticLibrary},
-				{L"dynamicLibrary", sfProjectType::dynamicLibrary}
+				{L"dynamicLibrary", sfProjectType::dynamicLibrary},
+				{L"headerOnly", sfProjectType::headerOnly}
 			};
 
 			auto it = projectTypeMap.find(projectTypeStr);
@@ -208,7 +211,7 @@ namespace shafa {
 				return it->second;
 			}
 
-			throw wruntime_error(L"Invalid project type. Expected: application, staticLibrary, dynamicLibrary.");
+			throw wruntime_error(L"Invalid project type. Expected: application, staticLibrary, dynamicLibrary, pkg.");
 		}
 	};
 	
@@ -320,8 +323,10 @@ namespace shafa {
 		std::wstring releaseFlags{ L" -O3 -flto -DNDEBUG" };
 		std::filesystem::path defaultClangCompilerPath { "\\..\\Shafa\\LLVM\\bin\\clang++.exe" };
 		std::filesystem::path defaultClangLinkerPath { "\\..\\Shafa\\LLVM\\bin\\lld-link.exe" };
+		std::filesystem::path defaultClangLibLinkerPath { "\\..\\Shafa\\LLVM\\bin\\llvm-lib.exe" };
 		std::filesystem::path cppCompilerPath{""};
 		std::filesystem::path cppLinkerPath{""};
+		std::filesystem::path cppLibLinkerPath{ "" };
 	} sfCompilationList;
 
 	typedef struct sfConfigList
@@ -334,6 +339,9 @@ namespace shafa {
 		std::filesystem::path outputReleaseFolder{ outputFolder.wstring() + L"\\Release"};
 		std::filesystem::path outputDebugFolder{ outputFolder.wstring() + L"\\Debug" };
 		std::filesystem::path cacheFilePath{ buildFolder.wstring() + L"\\data.info"};
+		std::filesystem::path pkgPathToHeaders;
+		std::filesystem::path pkgPathToLibs;
+		std::vector<std::wstring> pkgLibs;
 	} sfConfigList;
 
 	typedef struct sfCompilerArgs

@@ -53,10 +53,11 @@ namespace shafa {
             {
                 if (key.str() == "cppCompilerPath")
                 {
+                    std::filesystem::path compilerPath;
                     if (value.as_string()->get() == "auto")
                     {
 						LOG_DEBUG(L"Auto C++ compiler search is enabled.")
-                        auto compilerPath = foreman_finder();
+                        compilerPath = foreman_finder();
 
                         m_configSetup->compilationList->cppCompilerPath = compilerPath;
                         LOG_DEBUG(L"Found C++ compiler: " + m_configSetup->compilationList->cppCompilerPath.wstring());
@@ -85,20 +86,22 @@ namespace shafa {
 
                             std::filesystem::remove(m_configSetup->configFilePath);
                             std::filesystem::rename(tempPath, m_configSetup->configFilePath);
+                            m_configSetup->compilationList->cppCompilerPath = compilerPath;
                         }
                         else 
 							throw wruntime_error(L"Failed to open config file.");
                     }
                     else
                         m_configSetup->compilationList->cppCompilerPath = string_to_wstring(value.as_string()->get());
-                    LOG_INFO(L"C++ compiler path is set to " + string_to_wstring(value.as_string()->get()) + L".")                    
+                    LOG_INFO(L"C++ compiler path is set to " + string_to_wstring(value.as_string()->get()) + L".") 
                 }
                 else if (key.str() == "cppLinkerPath")
-                {
+                { 
+                    std::filesystem::path linkerPath;
                     if (value.as_string()->get() == "auto")
 					{
                         LOG_DEBUG(L"Auto C++ linker search is enabled.");
-						auto linkerPath = foreman_finder(true);
+						linkerPath = foreman_finder(true);
 
 						m_configSetup->compilationList->cppLinkerPath = linkerPath;
                         LOG_DEBUG(L"Found C++ linker: " + m_configSetup->compilationList->cppLinkerPath.wstring());
@@ -127,6 +130,7 @@ namespace shafa {
 
 							std::filesystem::remove(m_configSetup->configFilePath);
 							std::filesystem::rename(tempPath, m_configSetup->configFilePath);
+                            m_configSetup->compilationList->cppLinkerPath = linkerPath;
 						}
 						else
 							throw wruntime_error(L"Failed to open config file.");
@@ -134,7 +138,50 @@ namespace shafa {
 					else
 						m_configSetup->compilationList->cppLinkerPath = string_to_wstring(value.as_string()->get());
                     LOG_INFO(L"C++ linker path is set to " + string_to_wstring(value.as_string()->get()) + L".", LOG_INFO);
-                    m_configSetup->compilationList->cppLinkerPath = string_to_wstring(value.as_string()->get());
+                }
+                else if (key.str() == "cppLibLinkerPath")
+                {
+                    std::filesystem::path libLinkerPath;
+                    if (value.as_string()->get() == "auto")
+                    {
+                        LOG_DEBUG(L"Auto C++ lib linker search is enabled.");
+                        libLinkerPath = foreman_finder(true);
+
+                        m_configSetup->compilationList->cppLibLinkerPath = libLinkerPath;
+                        LOG_DEBUG(L"Found C++ lib linker: " + m_configSetup->compilationList->cppLibLinkerPath.wstring());
+
+                        std::wifstream file(m_configSetup->configFilePath);
+                        std::filesystem::path tempPath = m_configSetup->configFilePath.parent_path().wstring() + L"tempConfig.toml";
+                        std::wofstream tempFile(tempPath);
+
+                        std::int32_t lineToReplace = value.source().begin.line;
+                        std::int32_t currentLine = 1;
+
+                        if (file.is_open() && tempFile.is_open()) {
+                            std::wstring line;
+                            while (std::getline(file, line)) {
+                                if (currentLine != lineToReplace) {
+                                    tempFile << line << std::endl;
+                                }
+                                else {
+                                    tempFile << L"cppLibLinkerPath = '" << m_configSetup->compilationList->cppLibLinkerPath.wstring() << '\'' << std::endl;
+                                }
+                                currentLine++;
+                            }
+
+                            file.close();
+                            tempFile.close();
+
+                            std::filesystem::remove(m_configSetup->configFilePath);
+                            std::filesystem::rename(tempPath, m_configSetup->configFilePath);
+                            m_configSetup->compilationList->cppLibLinkerPath = libLinkerPath;
+                        }
+                        else
+                            throw wruntime_error(L"Failed to open config file.");
+                    }
+                    else
+                        m_configSetup->compilationList->cppLibLinkerPath = string_to_wstring(value.as_string()->get());
+                    LOG_INFO(L"C++ lib linker path is set to " + string_to_wstring(value.as_string()->get()) + L".", LOG_INFO);
                 }
                 else if (key.str() == "cppCompiler" && !(value.as_string()->get() == "clang"))
                 {
@@ -245,11 +292,12 @@ namespace shafa {
                 {
                     LOG_INFO(L"Output release folder is set to " + string_to_wstring(value.as_string()->get()) + L".");
                     m_configSetup->configList->outputReleaseFolder = string_to_wstring(value.as_string()->get());
-				} else if (key.str() == "outputDebugFolder" && !(value.as_string()->get() == "Output/Debug"))
+                }
+                else if (key.str() == "outputDebugFolder" && !(value.as_string()->get() == "Output/Debug"))
                 {
                     LOG_INFO(L"Output debug folder is set to " + string_to_wstring(value.as_string()->get()) + L".");
                     m_configSetup->configList->outputDebugFolder = string_to_wstring(value.as_string()->get());
-				}
+                }            
             }
         }
         else {
@@ -303,6 +351,7 @@ namespace shafa {
             if (
                 entry.path().extension() == ".cpp" ||
                 entry.path().extension() == ".cxx" ||
+                entry.path().extension() == ".cc" ||
                 entry.path().extension() == ".h" ||
                 entry.path().extension() == ".hpp"
                 )
@@ -365,7 +414,10 @@ namespace shafa {
                 break;
             }
         else
-            compilerName = L"lld-link.exe";
+            if (m_configSetup->projectSettings->projectType != sfProjectType::staticLibrary)
+                compilerName = L"lld-link.exe";
+            else
+				compilerName = L"llvm-lib.exe";
 
         std::vector<std::filesystem::path> compilers;
         for (const auto& path : paths) {

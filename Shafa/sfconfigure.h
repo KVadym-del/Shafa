@@ -32,6 +32,8 @@ namespace shafa {
                 m_configSetup->shafaRootPath.generic_wstring() + m_configSetup->compilationList->defaultClangCompilerPath.generic_wstring();
             m_configSetup->compilationList->defaultClangLinkerPath =
                 m_configSetup->shafaRootPath.generic_wstring() + m_configSetup->compilationList->defaultClangLinkerPath.generic_wstring();
+			m_configSetup->compilationList->defaultClangLibLinkerPath =
+				m_configSetup->shafaRootPath.generic_wstring() + m_configSetup->compilationList->defaultClangLibLinkerPath.generic_wstring();
 
 			LOG_DEBUG(L"Build folder: " + m_configSetup->configList->buildFolder.wstring())
 			LOG_DEBUG(L"Cache file path: " + m_configSetup->configList->cacheFilePath.wstring())
@@ -39,6 +41,7 @@ namespace shafa {
 			LOG_DEBUG(L"Output release folder: " + m_configSetup->configList->outputReleaseFolder.wstring())
 			LOG_DEBUG(L"Default clang compiler path: " + m_configSetup->compilationList->defaultClangCompilerPath.wstring())
 			LOG_DEBUG(L"Default clang linker path: " + m_configSetup->compilationList->defaultClangLinkerPath.wstring())
+			LOG_DEBUG(L"Default clang lib linker path: " + m_configSetup->compilationList->defaultClangLibLinkerPath.wstring())
         }
 
 	public:

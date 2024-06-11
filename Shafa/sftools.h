@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include <conio.h>
 #include <Windows.h>
 
@@ -65,7 +66,7 @@ namespace shafa {
             }
 		}
 
-		static std::wstring remove_char(const std::wstring& str, wchar_t ch)
+		static inline std::wstring remove_char(const std::wstring& str, wchar_t ch)
 		{
 			std::wstring newStr;
 			for (const auto& c : str)
@@ -78,4 +79,40 @@ namespace shafa {
 			return newStr;
 		}
 	};
+
+	static inline std::vector<std::filesystem::path> split_path(const std::filesystem::path& path) {
+		std::vector<std::filesystem::path> components;
+		for (const auto& part : path) {
+			components.push_back(part);
+		}
+		return components;
+	}
+
+    static inline std::filesystem::path find_highest_common_path(const std::vector<std::filesystem::path>& paths) {
+        if (paths.empty()) {
+            return "";
+        }
+
+        std::vector<std::filesystem::path> referenceComponents = split_path(paths[0]);
+        size_t commonLength = referenceComponents.size();
+
+        for (const auto& path : paths) {
+            std::vector<std::filesystem::path> components = split_path(path);
+            commonLength = min(commonLength, components.size());
+            for (size_t i = 0; i < commonLength; ++i) {
+                if (referenceComponents[i] != components[i]) {
+                    commonLength = i;
+                    break;
+                }
+            }
+        }
+
+        std::filesystem::path commonPath;
+        for (size_t i = 0; i < commonLength; ++i) {
+            commonPath /= referenceComponents[i];
+        }
+
+        return commonPath;
+    }
+
 }

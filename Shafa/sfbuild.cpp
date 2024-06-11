@@ -68,7 +68,6 @@ namespace shafa {
 
 	void sfbuild::clang_build()
 	{
-		FunctStats functionStats{ __FUNCTIONW__, __FILEW__ };
 		std::wstring compiler{};
 		if (cppNonDefaultCompilerPathExist == false)
 		{
@@ -85,6 +84,7 @@ namespace shafa {
 
 		std::wstring buildTypeCommand{};
 		std::wstring folderOutputCommand{};
+		std::wstring universalCommand{};
 
 		switch (m_configSetup->compilationList->projectBuildType)
 		{
@@ -100,10 +100,10 @@ namespace shafa {
 			break;
 		}
 
-		compilationCommand += buildTypeCommand;
+		universalCommand += buildTypeCommand;
 
 		for (const std::filesystem::path headerDir : m_configSetup->compilerArgs->cppIncludeDirs)
-			compilationCommand += L" -I\"" + headerDir.wstring() + L"\"";
+			universalCommand += L" -I\"" + headerDir.wstring() + L"\"";
 
 		switch (m_configSetup->projectSettings->projectType)
 		{
@@ -111,6 +111,7 @@ namespace shafa {
 		{
 			for (const auto& file : m_configSetup->compilerArgs->cppFiles)
 			{
+				compilationCommand += universalCommand;
 				compilationCommand += L" \"" + file.wstring() + L"\"";
 
 				compilationCommand += L" -c -o \"" + folderOutputCommand;
@@ -166,28 +167,42 @@ namespace shafa {
 	{
 		if (m_configSetup->projectSettings->projectType != sfProjectType::dynamicLibrary)
 		{
-			if (cppNonDefaultLinkerPathExist == false)
-			{
-				LOG_DEBUG(L"Using default C++ linker path: " + m_configSetup->compilationList->defaultClangLinkerPath.wstring());
-				m_linkingCommand += m_configSetup->compilationList->defaultClangLinkerPath.wstring();
+			if (m_configSetup->projectSettings->projectType != sfProjectType::staticLibrary) {
+				if (cppNonDefaultLinkerPathExist == false)
+				{
+					LOG_DEBUG(L"Using default C++ linker path: " + m_configSetup->compilationList->defaultClangLinkerPath.wstring());
+					m_linkingCommand += m_configSetup->compilationList->defaultClangLinkerPath.wstring();
+				}
+				else
+				{
+					LOG_DEBUG(L"Using specified C++ linker path: " + m_configSetup->compilationList->cppLinkerPath.wstring());
+					m_linkingCommand += m_configSetup->compilationList->cppLinkerPath.wstring();
+				}
+
+				if (m_configSetup->compilationList->projectBuildType == sfProjectBuildType::debug)
+					m_linkingCommand += L" /defaultlib:libucrtd";
+				else
+					m_linkingCommand += L" /defaultlib:libucrt";
+
+				for (const std::filesystem::path dir : m_configSetup->compilerArgs->cppLibDirs)
+					m_linkingCommand += L" /LIBPATH:\"" + dir.wstring() + L"\"";
+
+				for (const std::filesystem::path lib : m_configSetup->compilerArgs->cppLibs)
+					m_linkingCommand += L" /DEFAULTLIB:\"" + lib.wstring() + L"\"";
 			}
 			else
 			{
-				LOG_DEBUG(L"Using specified C++ linker path: " + m_configSetup->compilationList->cppLinkerPath.wstring());
-				m_linkingCommand += m_configSetup->compilationList->cppLinkerPath.wstring();
+				if (cppNonDefaultLibLinkerPathExist == false)
+				{
+					LOG_DEBUG(L"Using default C++ lib linker path: " + m_configSetup->compilationList->defaultClangLibLinkerPath.wstring());
+					m_linkingCommand += m_configSetup->compilationList->defaultClangLibLinkerPath.wstring();
+				}
+				else
+				{
+					LOG_DEBUG(L"Using specified C++ lib linker path: " + m_configSetup->compilationList->cppLibLinkerPath.wstring());
+					m_linkingCommand += m_configSetup->compilationList->cppLibLinkerPath.wstring();
+				}
 			}
-
-
-			if (m_configSetup->compilationList->projectBuildType == sfProjectBuildType::debug)
-				m_linkingCommand += L" /defaultlib:libucrtd";
-			else
-				m_linkingCommand += L" /defaultlib:libucrt";
-
-			for (const std::filesystem::path dir :  m_configSetup->compilerArgs->cppLibDirs)
-				m_linkingCommand += L" /LIBPATH:\"" + dir.wstring() + L"\"";
-
-			for (const std::filesystem::path lib : m_configSetup->compilerArgs->cppLibs)
-				m_linkingCommand += L" /DEFAULTLIB:\"" + lib.wstring() + L"\"";
 
 			std::wstring folderOutputCommand{};
 

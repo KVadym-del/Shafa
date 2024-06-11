@@ -41,7 +41,6 @@ namespace shafa {
 		}
 		std::future<BOOL> run_compiler(const std::wstring& command);
 
-
 	private:
 		std::shared_ptr<sfConfigSetup> m_configSetup;
 
@@ -50,5 +49,6 @@ namespace shafa {
 
 		bool cppNonDefaultCompilerPathExist{ true };
 		bool cppNonDefaultLinkerPathExist{ true };
+		bool cppNonDefaultLibLinkerPathExist{ true };
 	};
 }

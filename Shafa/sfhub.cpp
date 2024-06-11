@@ -335,6 +335,7 @@ namespace shafa {
 			if (
 				entry.path().extension() == ".cpp" ||
 				entry.path().extension() == ".cxx" ||
+				entry.path().extension() == ".cc" ||
 				entry.path().extension() == ".h" ||
 				entry.path().extension() == ".hpp"
 				)
