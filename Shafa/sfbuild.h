@@ -6,6 +6,8 @@
 #include <future>
 #include <Windows.h>
 
+#include <toml++/toml.hpp>
+
 #include "logger.h"
 #include "sftypes.h"
 #include "wexception.h"
@@ -27,6 +29,8 @@ namespace shafa {
 
 		void clang_build();
 		void clang_link();
+
+		void pkg_check();
 
 		static inline void ReadFromPipe(HANDLE hPipe)
 		{

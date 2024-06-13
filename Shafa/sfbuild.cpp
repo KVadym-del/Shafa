@@ -6,9 +6,12 @@ namespace shafa {
 #ifdef _DEBUG
 		logger::log_new_line();
 #endif // _DEBUG
+		if (m_configSetup->projectSettings->projectType == sfProjectType::headerOnly)
+			throw wexception(L"Cannot build header only project.");
 
 		compiler_check();
 		linker_check();
+		pkg_check();
 		switch (m_configSetup->compilationList->cppCompiler)
 		{
 		case sfCppCompilers::clang:
@@ -251,13 +254,62 @@ namespace shafa {
 				throw wexception(L"Link failed to launch process.");
 			else
 				LOG_INFO(L"Link process launched successfully");
+			m_linkingCommand.clear();
+		}
+	}
+
+	void sfbuild::pkg_check()
+	{
+		auto table = toml::parse_file(m_configSetup->configFilePath.string());
+
+		if (auto value = table["compilation"]["packages"].as_array(); value) {
+			for (const auto& pkg : *value) {
+				auto pkgConfigFile = m_configSetup->configList->pkgFolder.string() + "\\" + pkg.as_string()->get();
+				if (std::filesystem::exists(pkgConfigFile))
+				{
+					auto pkgTable = toml::parse_file(pkgConfigFile + "\\" + "pkgConfig.toml");
+					auto& compSection = *pkgTable["compilation"].as_table();
+					auto& settSection = *pkgTable["settings"].as_table();
+					switch (m_configSetup->compilationList->projectBuildType)
+					{
+					case sfProjectBuildType::debug:
+						if (compSection.contains("outputDebugFolder"))
+						{
+							m_configSetup->compilerArgs->cppLibDirs.push_back(std::filesystem::path(compSection["outputDebugFolder"].as_string()->get()));
+							m_configSetup->compilerArgs->cppLibs.push_back(std::filesystem::path(compSection["outputDebugFolder"].as_string()->get() + "\\" + settSection["projectName"].as_string()->get() + ".lib"));
+						}
+						else
+						{
+							m_configSetup->compilerArgs->cppLibDirs.push_back(std::filesystem::path(pkgConfigFile + "\\Build\\Output\\Debug"));
+							m_configSetup->compilerArgs->cppLibs.push_back(std::filesystem::path(pkgConfigFile + "\\Build\\Output\\Debug" + "\\" + settSection["projectName"].as_string()->get() + ".lib"));
+						}
+
+						break;
+					case sfProjectBuildType::release:
+						if (compSection.contains("outputReleaseFolder"))
+						{
+							m_configSetup->compilerArgs->cppLibDirs.push_back(std::filesystem::path(compSection["outputReleaseFolder"].as_string()->get()));
+							m_configSetup->compilerArgs->cppLibs.push_back(std::filesystem::path(compSection["outputReleaseFolder"].as_string()->get() + "\\" + settSection["projectName"].as_string()->get() + ".lib"));
+						}
+						else
+						{
+							m_configSetup->compilerArgs->cppLibDirs.push_back(std::filesystem::path(pkgConfigFile + "\\Build\\Output\\Release"));
+							m_configSetup->compilerArgs->cppLibs.push_back(std::filesystem::path(pkgConfigFile + "\\Build\\Output\\Release" + "\\" + settSection["projectName"].as_string()->get() + ".lib"));
+						}
+						break;
+					}
+					m_configSetup->compilerArgs->cppIncludeDirs.push_back(
+						std::filesystem::path(m_configSetup->configList->pkgFolder.string() + "\\" + pkg.as_string()->get()).wstring()
+					);
+				}
+			}
 		}
 	}
 
 	std::future<BOOL> sfbuild::run_compiler(const std::wstring& command)
 	{
 		std::launch launchType;
-		if (m_configSetup->configList->multiThreadedBuild == true)
+		if (m_configSetup->configList->asynchronousBuild == true)
 			launchType = std::launch::async;
 		else
 			launchType = std::launch::deferred;

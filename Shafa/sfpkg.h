@@ -11,33 +11,35 @@
 
 #include <archive.h>
 #include <archive_entry.h>
+#include <toml++/toml.hpp>
 
 #include "logger.h"
 #include "sftypes.h"
+#include "sfbuild.h"
 #include "sftools.h"
 #include "wexception.h"
 #include "sfarghelper.h"
-#include "sftools.h"
+#include "sfpkg_configure.h"
 
 namespace shafa {
 	class sfpkg
 	{
 	public:
-		sfpkg() = default;
-		sfpkg(std::shared_ptr<sfConfigSetup> configSetup);
+		sfpkg(std::shared_ptr<sfConfigSetup> configSetup) : m_configSetup(configSetup) {}
 
 		void make_pkg(const std::filesystem::path& folderPath);
 
 		void make_pkg_config();
 
-        void extract_pkg(const std::filesystem::path& pkgPath, const std::filesystem::path& extractPath);
+		void extract_pkg(const std::filesystem::path& pkgPath, const std::filesystem::path& extractPath);
 
 		void install_pkg(const std::filesystem::path& pkgPath);
 		void install_pkg(const std::wstring& pkgName);
+		void compile_pkg(const std::filesystem::path& pkgConfigPath);
 
 	private:
 		void make_tar(const std::filesystem::path& folderPath, const std::filesystem::path& tarPath);
-		void add_files_to_archive(archive* a, const std::string& dir_path, const std::vector<std::string>& exclusions, const std::string& output_filename);
+		void add_files_to_archive(struct archive* a, const std::string& dir_path, const std::vector<std::string>& exclusions, const std::string& output_filename);
 
 		void decompress_tar(const std::filesystem::path& pkgPath, const std::filesystem::path& extractPath);
 		void extract_file_form_tar(struct archive* a, struct archive* ext, struct archive_entry* entry, const std::filesystem::path& extractPath);
@@ -72,4 +74,4 @@ namespace shafa {
 		std::shared_ptr<sfConfigSetup> m_configSetup;
 
 	};
-}
+};

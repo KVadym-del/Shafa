@@ -329,18 +329,25 @@ namespace shafa {
 
 	void sfhub::non_configured_build()
 	{
+		
 		std::vector<std::pair<std::filesystem::path, std::wstring>> cppFileIdentity;
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::current_path()))
+		for (auto entry = std::filesystem::recursive_directory_iterator(std::filesystem::current_path());
+			entry != std::filesystem::recursive_directory_iterator(); ++entry)
 		{
+			if (entry->path() == m_configSetup->configList->pkgFolder) {
+				entry.disable_recursion_pending();
+				continue;
+			}
+
 			if (
-				entry.path().extension() == ".cpp" ||
-				entry.path().extension() == ".cxx" ||
-				entry.path().extension() == ".cc" ||
-				entry.path().extension() == ".h" ||
-				entry.path().extension() == ".hpp"
+				entry->path().extension() == ".cpp" ||
+				entry->path().extension() == ".cxx" ||
+				entry->path().extension() == ".cc" ||
+				entry->path().extension() == ".h" ||
+				entry->path().extension() == ".hpp"
 				)
 			{
-				cppFileIdentity.push_back(std::make_pair(entry.path(), file_hashing(entry.path().wstring())));
+				cppFileIdentity.push_back(std::make_pair(entry->path(), file_hashing(entry->path().wstring())));
 			}
 		}
 		std::vector<std::wstring> hashes;
@@ -383,7 +390,15 @@ namespace shafa {
 				}
 			}
 			m_configSetup->compilerArgs->cppFiles = paths;
-			build_hub();
+			try
+			{
+				build_hub();
+			}
+			catch (const wexception& err)
+			{
+				throw err;
+			}
+
 		}
 		else
 		{

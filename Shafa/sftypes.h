@@ -332,16 +332,13 @@ namespace shafa {
 	typedef struct sfConfigList
 	{
 		bool autoSourceSearch{ true };
-		bool multiThreadedBuild{ true };
+		bool asynchronousBuild{ true };
 		std::filesystem::path buildFolder{ L"\\Build" };
 		std::filesystem::path pkgFolder{ buildFolder.wstring() + L"\\Packages" };
 		std::filesystem::path outputFolder{ buildFolder.wstring() + L"\\Output"};
 		std::filesystem::path outputReleaseFolder{ outputFolder.wstring() + L"\\Release"};
 		std::filesystem::path outputDebugFolder{ outputFolder.wstring() + L"\\Debug" };
 		std::filesystem::path cacheFilePath{ buildFolder.wstring() + L"\\data.info"};
-		std::filesystem::path pkgPathToHeaders;
-		std::filesystem::path pkgPathToLibs;
-		std::vector<std::wstring> pkgLibs;
 	} sfConfigList;
 
 	typedef struct sfCompilerArgs

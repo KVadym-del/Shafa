@@ -1,12 +1,11 @@
 #include "sfpkg.h"
 
 namespace shafa {
-	sfpkg::sfpkg(std::shared_ptr<sfConfigSetup> configSetup)
-		: m_configSetup(configSetup)
-	{}
-
 	void sfpkg::make_pkg(const std::filesystem::path& folderPath)
 	{
+        if (m_configSetup->projectSettings->projectType == sfProjectType::application)
+			throw wexception(L"Cannot create package for application project");
+
         const std::filesystem::path tarPath{
             m_configSetup->configList->outputFolder.wstring() + L"\\" +
             m_configSetup->projectSettings->projectName + L"-" + m_configSetup->projectSettings->projectVersion + L".sfpkg"
@@ -16,20 +15,34 @@ namespace shafa {
 
     void sfpkg::make_pkg_config()
     {
-		std::wfstream configFile;
+		std::ofstream configFile;
         std::filesystem::path tempPkgConfigPath = std::filesystem::current_path().wstring() + L"\\pkgConfig.toml";
         configFile.open(tempPkgConfigPath, std::ios::out | std::ios::trunc);
 		if (!configFile.is_open())
 			throw wexception(L"Could not open file");
 
-		configFile << "[settings]\n";
-		configFile << L"projectName = \'" + m_configSetup->projectSettings->projectName + L"\'\n";
-		configFile << L"projectVersion = \'" + m_configSetup->projectSettings->projectVersion + L"\'\n";
-		configFile << L"projectType = \'pkg\'\n";
+        toml::table pkgConfigTable{
+            {"settings", toml::table {
+                {"projectName", m_configSetup->projectSettings->projectName},
+                {"projectVersion", m_configSetup->projectSettings->projectVersion},
+                {"projectType", sfProjectTypeHelper::to_string(m_configSetup->projectSettings->projectType)}
+                },
+			},
+			{"compilation", toml::table {
+				{"cppCompilerPath", "auto"},
+				{"cppLinkerPath", "auto"},
+				{"cppLibLinkerPath", "auto"},
+                {"cppVersion", sfCppVersionsHelper::to_string(m_configSetup->compilationList->cppVersion)},
+                {"cppCompiler", sfCppCompilersHelper::to_string(m_configSetup->compilationList->cppCompiler)},
+                {"debugFlags", sftools::wstring_to_toml_array(m_configSetup->compilationList->debugFlags)},
+				{"releaseFlags", sftools::wstring_to_toml_array(m_configSetup->compilationList->releaseFlags)},
+				},
+			},
+            {"configure", toml::table {}}
+        };
 
-        configFile << L"[compilation]\n";
-        configFile << L"cppCompilerPath = 'auto'\n";
-        configFile << L"cppLinkerPath = 'auto'\n";
+		configFile << pkgConfigTable;
+		configFile.close();
     }
 
 	void sfpkg::extract_pkg(const std::filesystem::path& pkgPath, const std::filesystem::path& extractPath)
@@ -51,18 +64,71 @@ namespace shafa {
 
     void sfpkg::install_pkg(const std::filesystem::path& pkgPath)
     {
+        auto table = toml::parse_file(m_configSetup->configFilePath.string());
+
+        if (auto value = table["compilation"]["packages"].as_array(); value) {
+			for (const auto& pkg : *value) {
+				if (pkg.as_string()->get().contains(pkgPath.stem().string())) {
+					LOG_ERROR(L"Package " + pkgPath.stem().wstring() + L" already exists");
+					return;
+				}
+			}
+        }
+
         std::filesystem::path purePkgPath = sftools::remove_char(pkgPath, '\"');
         std::filesystem::path pkgProjectPath = 
-            std::filesystem::current_path().wstring() +
             m_configSetup->configList->pkgFolder.wstring() +
             L"\\" + pkgPath.stem().wstring();
 
-		std::filesystem::create_directory(pkgProjectPath);
+		std::filesystem::create_directories(pkgProjectPath);
 		extract_pkg(purePkgPath, pkgProjectPath);
+		compile_pkg(pkgProjectPath / "pkgConfig.toml");
     }
 
     void sfpkg::install_pkg(const std::wstring& pkgName)
     {
+    }
+
+    void sfpkg::compile_pkg(const std::filesystem::path& pkgConfigPath)
+    {
+        std::shared_ptr<shafa::sfConfigSetup> pkgConfigSetup = std::make_shared<shafa::sfConfigSetup>();
+		pkgConfigSetup->shafaRootPath = m_configSetup->shafaRootPath;
+		pkgConfigSetup->configFilePath = pkgConfigPath;
+		LOG_INFO(L"Compiling package: " + pkgConfigPath.wstring());
+        sfpkg_configure m_pkgConfig{ pkgConfigSetup };
+
+		toml::table pkgContTable = toml::parse_file(pkgConfigPath.c_str());
+		m_pkgConfig.pkg_configure_hub(pkgContTable);
+		m_pkgConfig.pkg_configuration_construct();
+        m_pkgConfig.non_configured_build();
+
+		sfbuild pkgBuild(pkgConfigSetup);
+		pkgBuild.build_hub();
+		LOG_INFO(L"Debug package compiled successfully");
+		pkgConfigSetup->compilationList->projectBuildType = sfProjectBuildType::release;
+		pkgBuild.build_hub();
+		LOG_INFO(L"Release package compiled successfully");
+		LOG_INFO(L"Package compiled successfully");
+
+        auto table = toml::parse_file(m_configSetup->configFilePath.string());
+
+        auto& section = *table["compilation"].as_table();
+
+        if (section.contains("packages")) {
+            auto& array = *section["packages"].as_array();
+            array.push_back(pkgConfigSetup->projectSettings->projectName + L'-' + pkgConfigSetup->projectSettings->projectVersion);
+        }
+        else {
+            section.insert_or_assign("packages", toml::array{ pkgConfigSetup->projectSettings->projectName + L'-' + pkgConfigSetup->projectSettings->projectVersion });
+        }
+
+		std::ofstream configFile;
+		configFile.open(m_configSetup->configFilePath, std::ios::out | std::ios::trunc);
+		if (!configFile.is_open())
+			throw wexception(L"Could not open file");
+
+		configFile << table;
+		configFile.close();
     }
 
 	void sfpkg::make_tar(const std::filesystem::path& folderPath, const std::filesystem::path& tarPath)
@@ -83,7 +149,7 @@ namespace shafa {
         if (archive_write_open_filename(a, tarPath.string().c_str()) != ARCHIVE_OK)
             throw wexception(L"Error opening archive");
 
-
+        make_pkg_config();
 
         add_files_to_archive(a, folderPath.string().c_str(), exclusions, tarPath.string());
 
@@ -93,13 +159,14 @@ namespace shafa {
         if (archive_write_free(a) != ARCHIVE_OK)
 			throw wexception(L"Error freeing archive");
         
+        std::filesystem::remove(std::filesystem::current_path().wstring() + L"\\pkgConfig.toml");
         logger::log_new_line();
         LOG_INFO(L"Phase one is complete (1/1)");
 		LOG_INFO(L"Package created at: " + tarPath.wstring());
 	}
 
-	void sfpkg::add_files_to_archive(struct archive* a, const std::string& dir_path, const std::vector<std::string>& exclusions, const std::string& output_filename)
-	{
+    void sfpkg::add_files_to_archive(struct archive* a, const std::string& dir_path, const std::vector<std::string>& exclusions, const std::string& output_filename)
+    {
         WIN32_FIND_DATA find_file_data;
         HANDLE h_find = FindFirstFile((string_to_wstring(dir_path) + L"\\*").c_str(), &find_file_data);
 
@@ -120,28 +187,42 @@ namespace shafa {
             if (should_exclude(path.string(), exclusions) || path == output_filename) {
                 continue;
             }
-            
-            std::string fileName= path.filename().string();
+
+            std::string relative_path = std::filesystem::relative(path, std::filesystem::current_path().string()).string();
 
             if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                archive_entry* entry = archive_entry_new();
+                std::string dirEntry = relative_path + "/";
+                archive_entry_set_pathname(entry, dirEntry.c_str());
+                archive_entry_set_filetype(entry, AE_IFDIR);
+                archive_entry_set_perm(entry, _S_IREAD | _S_IWRITE);
+                archive_entry_set_size(entry, 0);
+                int awhErr = archive_write_header(a, entry);
+                if (awhErr != ARCHIVE_OK) {
+                    LOG_ERROR(L"Error writing directory header to archive");
+                    archive_entry_free(entry);
+                    continue;
+                }
+                archive_entry_free(entry);
+
                 add_files_to_archive(a, path.string(), exclusions, output_filename);
             }
             else {
                 archive_entry* entry = archive_entry_new();
-                archive_entry_set_pathname(entry, fileName.c_str());
+                archive_entry_set_pathname(entry, relative_path.c_str());
                 archive_entry_set_size(entry, (int64_t)find_file_data.nFileSizeLow | ((int64_t)find_file_data.nFileSizeHigh << 32));
                 archive_entry_set_filetype(entry, AE_IFREG);
                 archive_entry_set_perm(entry, _S_IREAD | _S_IWRITE);
-                std::int32_t awhErr = archive_write_header(a, entry);
+                int awhErr = archive_write_header(a, entry);
                 if (awhErr != ARCHIVE_OK) {
                     LOG_ERROR(L"Error writing header to archive");
-					archive_entry_free(entry);
-					continue;
-				}
+                    archive_entry_free(entry);
+                    continue;
+                }
 
                 HANDLE h_file = CreateFileA(path.string().c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
                 if (h_file == INVALID_HANDLE_VALUE) {
-					LOG_ERROR(L"Could not open file " + string_to_wstring(path.string()));
+                    LOG_ERROR(L"Could not open file " + string_to_wstring(path.string()));
                     archive_entry_free(entry);
                     continue;
                 }
@@ -163,7 +244,9 @@ namespace shafa {
         } while (FindNextFile(h_find, &find_file_data) != 0);
 
         FindClose(h_find);
-	}
+    }
+
+
 
 
     void sfpkg::decompress_tar(const std::filesystem::path& pkgPath, const std::filesystem::path& extractPath)

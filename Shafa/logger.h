@@ -15,7 +15,7 @@ namespace shafa {
 #define LOG_WARNING(msg) logger::log(msg, shafa::LogLevel::Warning, {__FUNCTIONW__, __FILEW__}, __LINE__);
 #define LOG_ERROR(msg) logger::log(msg, shafa::LogLevel::Error, {__FUNCTIONW__, __FILEW__}, __LINE__);
 
-	typedef struct Color
+	struct Color
 	{
 		static inline constexpr WORD GREY = 0x0008;
 		static inline constexpr WORD WHITE = 0x000F;
@@ -23,6 +23,7 @@ namespace shafa {
 		static inline constexpr WORD RED = 0x0004;
 		static inline constexpr WORD YELLOW = 0x0006;
 		static inline constexpr WORD BLUE = 0x0001;
+		static inline constexpr WORD CYAN = 0x0003;
 
 		static inline constexpr WORD INTENSITY = 0x0008;
 	};
@@ -58,22 +59,46 @@ namespace shafa {
 			switch (logLevel)
 			{
 			case LogLevel::Info:
-				SetConsoleTextAttribute(hConsole, Color::WHITE | Color::INTENSITY);
-				std::wcout << std::format(L"INFO: \t{}", msg) << std::endl;
+				SetConsoleTextAttribute(hConsole, Color::CYAN | Color::INTENSITY);
+				WriteConsole(
+					hConsole,
+					std::format(L"INFO: \t{}\n", msg).c_str(),
+					(DWORD)std::format(L"INFO: \t{}\n", msg).size(),
+					nullptr,
+					nullptr
+				);
 				break;
 			case LogLevel::Debug:
 #				ifdef _DEBUG
 					SetConsoleTextAttribute(hConsole, Color::BLUE | Color::INTENSITY);
-					std::wcout << std::format(L"DEBUG ({}(), line {}): \t{}", functionStats.funcName, line, msg) << std::endl;
+					WriteConsole(
+						hConsole,
+						std::format(L"DEBUG ({}(), line {}): \t{}\n", functionStats.funcName, line, msg).c_str(),
+						(DWORD)std::format(L"DEBUG ({}(), line {}): \t{}\n", functionStats.funcName, line, msg).size(),
+						nullptr,
+						nullptr
+					);
 #				endif // DEBUG
 				break;
 			case LogLevel::Warning:
 				SetConsoleTextAttribute(hConsole, Color::YELLOW | Color::INTENSITY);
-				std::wclog << std::format(L"WARNING ({}(), line {}): \t{}", functionStats.funcName, line, msg)  << std::endl;
+				WriteConsole(
+					hConsole,
+					std::format(L"WARNING ({}(), line {}): \t{}\n", functionStats.funcName, line, msg).c_str(),
+					(DWORD)std::format(L"WARNING ({}(), line {}): \t{}\n", functionStats.funcName, line, msg).size(),
+					nullptr,
+					nullptr
+				);
 				break;
 			case LogLevel::Error:
 				SetConsoleTextAttribute(hConsole, Color::RED | Color::INTENSITY);
-				std::wcerr << std::format(L"ERROR ({}(), line {}): \t{}", functionStats.funcName, line, msg) << std::endl;
+				WriteConsole(
+					hConsole,
+					std::format(L"ERROR ({}(), line {}): \t{}\n", functionStats.funcName, line, msg).c_str(),
+					(DWORD)std::format(L"ERROR ({}(), line {}): \t{}\n", functionStats.funcName, line, msg).size(),
+					nullptr,
+					nullptr
+				);
 				break;
 			}
 

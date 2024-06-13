@@ -27,6 +27,7 @@ namespace shafa {
             m_configSetup->configList->outputDebugFolder = std::filesystem::current_path().wstring() + m_configSetup->configList->outputDebugFolder.wstring();
             m_configSetup->configList->outputReleaseFolder = std::filesystem::current_path().wstring() + m_configSetup->configList->outputReleaseFolder.wstring();
             m_configSetup->configList->cacheFilePath = std::filesystem::current_path().wstring() + m_configSetup->configList->cacheFilePath.wstring();
+            m_configSetup->configList->pkgFolder = std::filesystem::current_path().wstring() + m_configSetup->configList->pkgFolder.wstring();
 
             m_configSetup->compilationList->defaultClangCompilerPath =
                 m_configSetup->shafaRootPath.generic_wstring() + m_configSetup->compilationList->defaultClangCompilerPath.generic_wstring();
