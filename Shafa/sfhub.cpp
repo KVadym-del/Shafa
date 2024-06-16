@@ -68,7 +68,8 @@ namespace shafa {
 				for (buildIndex = (index + 1); buildIndex < args.size(); buildIndex++)
 				{
 					auto confArgEnum = sfArgEnumHelper::to_enum(args[buildIndex]);
-					m_configSetup->compilationList->projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
+					if (confArgEnum != sfArgEnum::help)
+						m_configSetup->compilationList->projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
 					if (confArgEnum == sfArgEnum::none)
 					{
 						m_configSetup->compilationList->projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
@@ -218,8 +219,8 @@ namespace shafa {
 							switch (sfArgEnumHelper::to_enum(subArg))
 							{
 							case sfArgEnum::help:
-								LOG_INFO(L"Not implemented yet.");
-								goto exitBuildLoop;
+								sfarghelper::help_build();
+								goto fullExit;
 							default:
 								{
 								non_configured_build();
@@ -242,70 +243,81 @@ namespace shafa {
 					if (subArgs.size() > 0) {
 						for (const auto& subArg : subArgs)
 						{
-							switch (sfPkgEventHelper::to_enum(subArg))
+							switch (sfArgEnumHelper::to_enum(subArg))
 							{
-							case sfPkgEvent::none:
-								LOG_ERROR(L"Unknown argument");
-								break;
-							case sfPkgEvent::make:
-								try { sfpkg::make_pkg(std::filesystem::current_path()); }
-								catch (const wexception& err) { throw err; }
-								goto exitPkgLoop;
-							case sfPkgEvent::extract:
-								if (subArgs.size() >= 3) {
-									if (subArgs[1].empty())
-									{
-										LOG_ERROR(L"Please provide a path to the package");
-										goto exitPkgLoop;
-									}
-									else if (subArgs[2].empty())
-									{
-										LOG_ERROR(L"Please provide a path to extract the package");
-										goto exitPkgLoop;
-									}
-									else {
-										try
+							case sfArgEnum::help:
+							{
+								sfarghelper::help_pkg();
+								goto fullExit;
+							}
+							default:
+							{
+								switch (sfPkgEventHelper::to_enum(subArg))
+								{
+								case sfPkgEvent::none:
+									LOG_ERROR(L"Unknown argument");
+									goto exitPkgLoop;
+								case sfPkgEvent::make:
+									try { sfpkg::make_pkg(std::filesystem::current_path()); }
+									catch (const wexception& err) { throw err; }
+									goto exitPkgLoop;
+								case sfPkgEvent::extract:
+									if (subArgs.size() >= 3) {
+										if (subArgs[1].empty())
 										{
-											sfpkg::extract_pkg(subArgs[1], subArgs[2]);
+											LOG_ERROR(L"Please provide a path to the package");
 											goto exitPkgLoop;
 										}
-										catch (const wexception& err)
+										else if (subArgs[2].empty())
 										{
-											throw err;
+											LOG_ERROR(L"Please provide a path to extract the package");
+											goto exitPkgLoop;
+										}
+										else {
+											try
+											{
+												sfpkg::extract_pkg(subArgs[1], subArgs[2]);
+												goto exitPkgLoop;
+											}
+											catch (const wexception& err)
+											{
+												throw err;
+											}
 										}
 									}
-								}
-								else {
-									throw wexception(L"Not enough arguments, use help to find more information");
-								}
-								goto exitPkgLoop;
-							case sfPkgEvent::read:
-								LOG_INFO(L"Not implemented yet.");
-								goto exitPkgLoop;
+									else {
+										throw wexception(L"Not enough arguments, use help to find more information");
+									}
+									goto exitPkgLoop;
+								case sfPkgEvent::read:
+									LOG_INFO(L"Not implemented yet.");
+									goto exitPkgLoop;
 
-							case sfPkgEvent::install:
-								if (subArgs.size() >= 2) {
-									if (subArgs[1].empty())
-									{
-										LOG_ERROR(L"Please provide a path to the package");
-										goto exitPkgLoop;
-									}
-									else {
-										try
+								case sfPkgEvent::install:
+									if (subArgs.size() >= 2) {
+										if (subArgs[1].empty())
 										{
-											sfpkg::install_pkg(subArgs[1]);
+											LOG_ERROR(L"Please provide a path to the package");
 											goto exitPkgLoop;
 										}
-										catch (const wexception& err)
-										{
-											throw err;
+										else {
+											try
+											{
+												sfpkg::install_pkg(subArgs[1]);
+												goto exitPkgLoop;
+											}
+											catch (const wexception& err)
+											{
+												throw err;
+											}
 										}
 									}
+									else {
+										throw wexception(L"Not enough arguments, use help to find more information");
+									}
+									goto exitPkgLoop;
 								}
-								else {
-									throw wexception(L"Not enough arguments, use help to find more information");
 								}
-								goto exitPkgLoop;
 							}
 						}
 					}
@@ -325,6 +337,7 @@ namespace shafa {
 		else {
 			sfarghelper::help_args();
 		}
+	fullExit: {}
 	}
 
 	void sfhub::non_configured_build()

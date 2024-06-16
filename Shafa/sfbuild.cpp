@@ -27,6 +27,7 @@ namespace shafa {
 			if (m_configSetup->projectSettings->projectType != sfProjectType::dynamicLibrary)
 				clang_link();
 			LOG_DEBUG(L"Linking command: \n\t" + m_linkingCommand);
+			m_linkingCommand.clear();
 			break;
 		case sfCppCompilers::msvc:
 			break;
@@ -154,6 +155,7 @@ namespace shafa {
 		bool result = true;
 		for (auto& launcher : processLaunchers) {
 			BOOL success = launcher.get();
+
 			if (success == false)
 				result = false;
 			LOG_DEBUG((success ? L"Build process launched successfully" : L"Build failed to launch process"));
@@ -183,9 +185,9 @@ namespace shafa {
 				}
 
 				if (m_configSetup->compilationList->projectBuildType == sfProjectBuildType::debug)
-					m_linkingCommand += L" /defaultlib:libucrtd";
+					m_linkingCommand += L" /defaultlib:libcmtd";
 				else
-					m_linkingCommand += L" /defaultlib:libucrt";
+					m_linkingCommand += L" /defaultlib:libcmt";
 
 				for (const std::filesystem::path dir : m_configSetup->compilerArgs->cppLibDirs)
 					m_linkingCommand += L" /LIBPATH:\"" + dir.wstring() + L"\"";
@@ -254,7 +256,6 @@ namespace shafa {
 				throw wexception(L"Link failed to launch process.");
 			else
 				LOG_INFO(L"Link process launched successfully");
-			m_linkingCommand.clear();
 		}
 	}
 
