@@ -8,6 +8,7 @@
 #include <map>
 
 #include <toml++/toml.hpp>
+#include <argparse/argparse.hpp>
 
 #include "sftypes.h"
 #include "sfinit.h"
