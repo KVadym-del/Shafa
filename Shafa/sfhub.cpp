@@ -1,154 +1,56 @@
 #include "sfhub.h"
 namespace shafa {
-	void sfhub::analyze_hub(const std::vector<std::wstring_view>& args)
+	void sfhub::analyze_hub(argparse::ArgumentParser* program)
 	{
-		for (std::size_t index = 1; index < args.size(); index++)
-		{
-			auto argEnum = sfArgEnumHelper::to_enum(args[index]);
-			switch (argEnum)
-			{
-			case sfArgEnum::none:
-				m_args.push_back({ argEnum, {} });
-				break;
-			case sfArgEnum::help:
-				m_args.push_back({ argEnum, {} });
-				break;
-			case sfArgEnum::init:
-			{
-				std::wstring_view initArg{};
+		m_program = program;
+		m_program->add_argument("-h", "--help", "help")
+			.help("Show this help message and exit")
+			.default_value(false)
+			.implicit_value(true);
+		m_program->add_argument("-i", "--init", "init")
+			.help("Initialize a new project(in-dev)")
+			.default_value(false)
+			.implicit_value(true);
+		m_program->add_argument("-c", "--configure", "configure")
+			.help("Configure the project")
+			.action([&](const std::string& value) {
+					configure_hub(m_sfContTable);
+					configuration_construct();
+				})
+			.default_value(false)
+			.implicit_value(true);
+		m_program->add_argument("-b", "--build", "build")
+			.help("Build the project")
+			.action([&](const std::string& value) {
+					non_configured_build();
+					configuration_construct();
+				})
+			.default_value(std::string("debug"))
+			.implicit_value(true);
 
-				if (args.size() >= (index + 1))
-				{
-					auto confArgEnum = sfArgEnumHelper::to_enum(args[index + 1]);
-					if (confArgEnum == sfArgEnum::none)
-					{
-						initArg = args[index + 1];
-						break;
-					}
-					else if (confArgEnum == sfArgEnum::help)
-					{
-						initArg = args[index + 1];
-						break;
-					}
-				}
-
-				m_args.push_back({ argEnum, { initArg } });
-				break;
-			}
-			case sfArgEnum::configure:
-			{
-				std::vector<std::wstring_view> configureArgs;
-				std::size_t confIndex;
-				for (confIndex = (index + 1); confIndex < args.size(); confIndex++)
-				{
-					auto confArgEnum = sfArgEnumHelper::to_enum(args[confIndex]);
-					if (confArgEnum == sfArgEnum::none)
-					{
-						configureArgs.push_back(args[confIndex]);
-					}
-					else if (confArgEnum == sfArgEnum::help)
-					{
-						configureArgs.push_back(args[confIndex]);
-						break;
-					}
-					else
-					{
-						--confIndex;
-						break;
-					}
-				}
-				index = confIndex;
-				m_args.push_back({ argEnum, configureArgs });
-				break;
-			}
-			case sfArgEnum::build:
-			{
-				std::vector<std::wstring_view> buildArgs;
-				std::size_t buildIndex;
-				for (buildIndex = (index + 1); buildIndex < args.size(); buildIndex++)
-				{
-					auto confArgEnum = sfArgEnumHelper::to_enum(args[buildIndex]);
-					if (confArgEnum != sfArgEnum::help)
-						m_configSetup->compilationList->projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
-					if (confArgEnum == sfArgEnum::none)
-					{
-						m_configSetup->compilationList->projectBuildType = sfProjectBuildTypeHelper::to_enum(args[buildIndex]);
-						buildArgs.push_back(args[buildIndex]);
-						break;
-					}
-					else if (confArgEnum == sfArgEnum::help)
-					{
-						buildArgs.push_back(args[buildIndex]);
-						break;
-					}
-					else
-					{
-						--buildIndex;
-						break;
-					}
-				}
-				m_args.push_back({ argEnum, buildArgs });
-				break;
-			}
-			case sfArgEnum::pkg:
-			{
-				std::vector<std::wstring_view> buildArgs;
-				std::size_t buildIndex;
-				for (buildIndex = (index + 1); buildIndex < args.size(); buildIndex++)
-				{
-					auto confArgEnum = sfArgEnumHelper::to_enum(args[buildIndex]);
-					sfPkgEvent pkgEvent = sfPkgEventHelper::to_enum(args[buildIndex]);
-					if (confArgEnum == sfArgEnum::none)
-					{
-						switch (pkgEvent)
-						{
-						case shafa::sfPkgEvent::make:
-							buildArgs.push_back(args[buildIndex]);
-							break;
-						case shafa::sfPkgEvent::extract:
-							buildArgs.push_back(args[buildIndex]);
-							buildArgs.push_back(args[buildIndex + 1]);
-							buildArgs.push_back(args[buildIndex + 2]);
-							break;
-						case shafa::sfPkgEvent::read:
-							buildArgs.push_back(args[buildIndex]);
-							break;
-						case shafa::sfPkgEvent::install:
-							buildArgs.push_back(args[buildIndex]);
-							if (args.size() >= (buildIndex + 1))
-							{
-								buildArgs.push_back(args[buildIndex + 1]);
-							} else
-							{
-								LOG_ERROR(L"Please provide a path to the package");
-								break;
-							}
-							break;
-						}
-						break;
-					}
-					else if (confArgEnum == sfArgEnum::help)
-					{
-						buildArgs.push_back(args[buildIndex]);
-						break;
-					}
-					else
-					{
-						--buildIndex;
-						break;
-					}
-				}
-				index = buildIndex;
-				m_args.push_back({ argEnum, buildArgs });
-				break;
-			}
-			case sfArgEnum::run:
-				m_args.push_back({ argEnum, {} });
-				break;
-			default:
-				break;
-			}
-		}
+		argparse::ArgumentParser pkgParser("install");
+		pkgParser.add_argument("pkg")
+			.help("Package the project")
+			.nargs(1)
+			.choices("make", "extract", "read", "install")
+			.action([&](const std::string& value) {
+			m_program->add_subparser(pkgParser);
+				})
+			.default_value(false)
+			.implicit_value(true);
+		m_program->add_argument("-p", "--pkg", "pkg")
+			.help("Package the project")
+			.nargs(1)
+			.choices("make", "extract", "read", "install")
+			.action([&](const std::string& value) {
+			m_program->add_subparser(pkgParser);
+				})
+			.default_value(false)
+			.implicit_value(true);
+		m_program->add_argument("-r", "--run", "run")
+			.help("Run the project(in-dev)")
+			.default_value(false)
+			.implicit_value(true);
 	}
 
 	void sfhub::start_shafa()

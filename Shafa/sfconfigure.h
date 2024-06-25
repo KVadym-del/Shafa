@@ -20,7 +20,7 @@ namespace shafa {
 	class sfconfigure
 	{
     public:
-        sfconfigure(std::shared_ptr<sfConfigSetup> configSetup) : m_configSetup(configSetup)
+        sfconfigure(sfConfigSetup* configSetup) : m_configSetup(configSetup)
         {
             m_configSetup->configList->buildFolder = std::filesystem::current_path().wstring() + m_configSetup->configList->buildFolder.wstring();
             m_configSetup->configList->outputFolder = std::filesystem::current_path().wstring() + m_configSetup->configList->outputFolder.wstring();
@@ -46,7 +46,7 @@ namespace shafa {
         }
 
 	public:
-		void configure_hub(toml::table& sfContTable, std::vector<sfArg> args);
+		void configure_hub(toml::table& sfContTable);
 
 		void configuration_construct();
 
@@ -112,8 +112,6 @@ namespace shafa {
 		}
 
     private:
-        std::shared_ptr<sfConfigSetup> m_configSetup;
-        std::vector<sfArg> m_args;
-
+        sfConfigSetup* m_configSetup;
 	};
 }

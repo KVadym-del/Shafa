@@ -25,7 +25,7 @@ namespace shafa {
 	class sfpkg
 	{
 	public:
-		sfpkg(std::shared_ptr<sfConfigSetup> configSetup) : m_configSetup(configSetup) {}
+		sfpkg(sfConfigSetup* configSetup) : m_configSetup(configSetup) {}
 
 		void make_pkg(const std::filesystem::path& folderPath);
 
@@ -71,7 +71,7 @@ namespace shafa {
 		}
 
 	private:
-		std::shared_ptr<sfConfigSetup> m_configSetup;
+		sfConfigSetup* m_configSetup;
 
 	};
 };

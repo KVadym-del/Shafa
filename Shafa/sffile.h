@@ -17,7 +17,7 @@ namespace shafa
 	{
 	public:
 		sffile() = default;
-		sffile(std::shared_ptr<sfConfigSetup> configSetup);
+		sffile(sfConfigSetup* configSetup);
 		~sffile() = default;
 
 		void check_validity(void);
@@ -28,6 +28,6 @@ namespace shafa
 
 	private:
 		path m_sfPath;
-		std::shared_ptr<sfConfigSetup> m_configSetup;
+		sfConfigSetup* m_configSetup;
 	};
 }

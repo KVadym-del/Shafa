@@ -1,9 +1,8 @@
 #include "sfconfigure.h"
 
 namespace shafa {
-	void sfconfigure::configure_hub(toml::table& sfContTable, std::vector<sfArg> args)
+	void sfconfigure::configure_hub(toml::table& sfContTable)
 	{
-        m_args = std::move(args);
         if (sfContTable.contains("settings"))
         {
             const toml::table& compilation_table = *sfContTable.at("settings").as_table();

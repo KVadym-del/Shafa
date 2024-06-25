@@ -13,13 +13,13 @@ namespace shafa {
 	{
 	public:
 		sfinit() = default;
-		sfinit(std::shared_ptr<sfConfigSetup> configSetup);
+		sfinit(sfConfigSetup* configSetup);
 		~sfinit() = default;
 
 		void init_project();
 
 	private:
-		std::shared_ptr<sfConfigSetup> m_configSetup;
+		sfConfigSetup* m_configSetup;
 	};
 }
 

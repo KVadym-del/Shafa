@@ -1,7 +1,7 @@
 #include "sfinit.h"
 
 namespace shafa {
-	sfinit::sfinit(std::shared_ptr<sfConfigSetup> configSetup)
+	sfinit::sfinit(sfConfigSetup* configSetup)
 		: m_configSetup(configSetup)
 	{}
 

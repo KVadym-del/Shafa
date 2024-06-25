@@ -2,7 +2,7 @@
 
 namespace shafa {
 
-	sffile::sffile(std::shared_ptr<sfConfigSetup> configSetup)
+	sffile::sffile(sfConfigSetup* configSetup)
 		: m_configSetup(configSetup), m_sfPath(configSetup->configFilePath), sfhub(configSetup)
 	{
 		if (!std::filesystem::exists(m_sfPath))
