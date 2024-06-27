@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <string>
-#include <print>
 #include <cstdio>
 #include <format>
 
