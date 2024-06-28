@@ -13,21 +13,23 @@ namespace shafa
 {
 	using std::filesystem::path;
 
-	class sffile : public sfhub
+	class sffile 
 	{
 	public:
 		sffile() = default;
-		sffile(std::shared_ptr<sfConfigSetup> configSetup);
 		~sffile() = default;
 
-		void check_validity(void);
+		void check_validity(sfConfigSetup* configSetup);
 
 	public:
 		inline path get_path(void) const { return m_sfPath; }
-		inline toml::table& get_content_table(void) { return sfhub::m_sfContTable; }
+		inline sfConfigSetup* get_config_setup(void) const { return m_configSetup; }
+		inline sfhub* get_sf_hub(void) const { return m_sfHub.get(); }
 
 	private:
+		std::unique_ptr<sfhub> m_sfHub;
+
 		path m_sfPath;
-		std::shared_ptr<sfConfigSetup> m_configSetup;
+		sfConfigSetup* m_configSetup;
 	};
 }

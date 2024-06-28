@@ -22,7 +22,7 @@ namespace shafa {
 	class sfpkg_configure
 	{
     public:
-        sfpkg_configure(std::shared_ptr<sfConfigSetup> pkgConfigSetup) : m_pkgConfigSetup(pkgConfigSetup)
+        sfpkg_configure(sfConfigSetup* pkgConfigSetup) : m_pkgConfigSetup(pkgConfigSetup)
         {
             m_pkgConfigSetup->configList->buildFolder = m_pkgConfigSetup->configFilePath.parent_path().wstring() + m_pkgConfigSetup->configList->buildFolder.wstring();
             m_pkgConfigSetup->configList->outputFolder = m_pkgConfigSetup->configFilePath.parent_path().wstring() + m_pkgConfigSetup->configList->outputFolder.wstring();
@@ -177,7 +177,7 @@ namespace shafa {
         }
 
     private:
-        std::shared_ptr<sfConfigSetup> m_pkgConfigSetup;
+        sfConfigSetup* m_pkgConfigSetup;
 
 	};
 }
