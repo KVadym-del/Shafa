@@ -91,21 +91,21 @@ namespace shafa {
 
     void sfpkg::compile_pkg(const std::filesystem::path& pkgConfigPath)
     {
-        std::shared_ptr<shafa::sfConfigSetup> pkgConfigSetup = std::make_shared<shafa::sfConfigSetup>();
-		pkgConfigSetup->shafaRootPath = m_configSetup->shafaRootPath;
-		pkgConfigSetup->configFilePath = pkgConfigPath;
+        shafa::sfConfigSetup pkgConfigSetup{};
+		pkgConfigSetup.shafaRootPath = m_configSetup->shafaRootPath;
+		pkgConfigSetup.configFilePath = pkgConfigPath;
 		LOG_INFO(L"Compiling package: " + pkgConfigPath.wstring());
-        sfpkg_configure m_pkgConfig{ pkgConfigSetup };
+        sfpkg_configure m_pkgConfig{ &pkgConfigSetup };
 
 		toml::table pkgContTable = toml::parse_file(pkgConfigPath.c_str());
 		m_pkgConfig.pkg_configure_hub(pkgContTable);
 		m_pkgConfig.pkg_configuration_construct();
         m_pkgConfig.non_configured_build();
 
-		sfbuild pkgBuild(pkgConfigSetup);
+        sfbuild pkgBuild{ &pkgConfigSetup };
 		pkgBuild.build_hub();
 		LOG_INFO(L"Debug package compiled successfully");
-		pkgConfigSetup->compilationList->projectBuildType = sfProjectBuildType::release;
+		pkgConfigSetup.compilationList->projectBuildType = sfProjectBuildType::release;
 		pkgBuild.build_hub();
 		LOG_INFO(L"Release package compiled successfully");
 		LOG_INFO(L"Package compiled successfully");
@@ -116,10 +116,10 @@ namespace shafa {
 
         if (section.contains("packages")) {
             auto& array = *section["packages"].as_array();
-            array.push_back(pkgConfigSetup->projectSettings->projectName + L'-' + pkgConfigSetup->projectSettings->projectVersion);
+            array.push_back(pkgConfigSetup.projectSettings->projectName + L'-' + pkgConfigSetup.projectSettings->projectVersion);
         }
         else {
-            section.insert_or_assign("packages", toml::array{ pkgConfigSetup->projectSettings->projectName + L'-' + pkgConfigSetup->projectSettings->projectVersion });
+            section.insert_or_assign("packages", toml::array{ pkgConfigSetup.projectSettings->projectName + L'-' + pkgConfigSetup.projectSettings->projectVersion });
         }
 
 		std::ofstream configFile;

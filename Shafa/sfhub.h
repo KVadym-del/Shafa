@@ -8,7 +8,6 @@
 #include <map>
 
 #include <toml++/toml.hpp>
-#include <argparse/argparse.hpp>
 
 #include "sftypes.h"
 #include "sfinit.h"
@@ -33,19 +32,14 @@ namespace shafa {
 		~sfhub() = default;
 
 	public:
-		void analyze_hub(argparse::ArgumentParser* program);
-
-		void start_shafa();
 		void non_configured_build();
 
-		inline const argparse::ArgumentParser* get_program() const { return m_program; }
 		inline sfConfigSetup* get_config_setup() { return m_configSetup; }
 
-	protected:
+	public:
 		toml::table m_sfContTable;
 	
 	private:
-		argparse::ArgumentParser* m_program;
 		sfConfigSetup* m_configSetup;
 	};
 }
