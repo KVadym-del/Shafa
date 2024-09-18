@@ -185,9 +185,9 @@ namespace shafa {
 				}
 
 				if (m_configSetup->compilationList->projectBuildType == sfProjectBuildType::debug)
-					m_linkingCommand += L" /defaultlib:libcpmtd";
+					m_linkingCommand += L" /defaultlib:libcmtd";
 				else
-					m_linkingCommand += L" /defaultlib:libvcruntime";
+					m_linkingCommand += L" /defaultlib:libcmt";
 
 				for (const std::filesystem::path dir : m_configSetup->compilerArgs->cppLibDirs)
 					m_linkingCommand += L" /LIBPATH:\"" + dir.wstring() + L"\"";

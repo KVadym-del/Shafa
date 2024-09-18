@@ -372,6 +372,7 @@ namespace shafa {
             }
 
         std::vector<std::filesystem::path> compilers;
+		paths.emplace_back(m_configSetup->compilationList->defaultClangCompilerPath.parent_path().wstring());
         for (const auto& path : paths) {
             std::wstring appPath = path + L"\\" + compilerName.c_str();
             DWORD fileAttrs = GetFileAttributes(appPath.c_str());
@@ -381,6 +382,8 @@ namespace shafa {
 
         if (compilers.empty())
             throw wexception(L"Failed to find C++ compiler in PATH environment variable.");
+
+
 
         std::filesystem::path compilerPath;
         if (compilers.size() >= 2)
